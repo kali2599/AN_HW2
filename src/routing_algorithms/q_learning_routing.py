@@ -8,16 +8,7 @@ class QLearningRouting(BASE_routing):
     def __init__(self, drone, simulator):
         BASE_routing.__init__(self, drone=drone, simulator=simulator)
         self.taken_actions = {}  # id event : (old_state, old_action)
-        self.qtable = {}  # position : (relay : value)  , discretize the space in cells--> each position is a cell
-        path = self.drone.path
-        self.path_discretized = []
-        for i in range(len(path)):
-            cell = util.TraversedCells.coord_to_cell(size_cell=self.simulator.prob_size_cell,
-                                                     width_area=self.simulator.env_width,
-                                                     x_pos=path[i][0],
-                                                     y_pos=path[i][1])[0]
-            self.path_discretized.append(cell)
-
+        self.qtable = {}  # drone : drone ???
     def feedback(self, drone, id_event, delay, outcome):
         """
         Feedback returned when the packet arrives at the depot or
@@ -51,25 +42,6 @@ class QLearningRouting(BASE_routing):
             # remove the entry, the action has received the feedback
             del self.taken_actions[id_event]
 
-            """ CALCULATE THE MAX NEXT VALUE OF Q-TABLE"""
-            if next_target in self.qtable:
-                best_next_drone = max(self.qtable[next_target], key=self.qtable[next_target].get)
-                max_next = self.qtable[next_target][best_next_drone]
-            else:
-                max_next = 0
-
-            """ UPDATE THE Q-TABLE"""
-            reward = outcome * (2000 / delay)
-            a, y = 0.2, 0.8
-            if state in self.qtable:
-                if action in self.qtable[state]:  # we already know something about the action taken
-                    self.qtable[state][action] = self.qtable[state][action] + a * (
-                            reward + y * max_next - self.qtable[state][action])
-                else:  # we don't know anything about the action taken
-                    self.qtable[state][action] = a * (reward + y * max_next)
-            else:  #
-                self.qtable[state] = {}
-                self.qtable[state][action] = a * (reward + y * max_next)
 
     def relay_selection(self, opt_neighbors: list, packet):
         """
@@ -80,31 +52,11 @@ class QLearningRouting(BASE_routing):
         @return: The best drone to use as relay
         """
 
-        cell_index = self.get_cell(self.drone.coords)
+        #cell_index = self.get_cell(self.drone.coords)
         relay = None
-        cur_pos = cell_index
-        neighs = [d for hello, d in opt_neighbors]
 
-        e = random.random()
-        if e < 0.95:  # greedy case
-            if cur_pos in self.qtable:
-                relay = max(self.qtable[cur_pos], key=self.qtable[cur_pos].get)
-                if relay not in neighs:  # the relay could not be in the neighbours
-                    relay = self.select_best_neigh(opt_neighbors)
-                    self.simulator.exploitation[1] += 1
-                else:
-                    self.simulator.exploitation[0] += 1
-            else:
-                self.simulator.exploitation[1] += 1
-                relay = self.select_best_neigh(
-                    opt_neighbors)  # choose the best relay based on the neighbours properties
-        else:  # exploration case
-            self.simulator.exploration += 1
-            relay = random.choice(neighs)
-
-        state, action = cur_pos, relay
-        next_target = self.get_cell(self.drone.next_target())
-        self.taken_actions[packet.event_ref.identifier] = (state, action, next_target)
+        state, action = None, None
+        self.taken_actions[packet.event_ref.identifier] = (state, action)
         return relay
 
     def select_best_neigh(self, opt_neighbours):  # select the fastest drone that could reach the depeot
