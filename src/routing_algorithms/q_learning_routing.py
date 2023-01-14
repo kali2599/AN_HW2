@@ -9,6 +9,7 @@ class QLearningRouting(BASE_routing):
         BASE_routing.__init__(self, drone=drone, simulator=simulator)
         self.taken_actions = {}  # id event : (old_state, old_action)
         self.qtable = {}  # drone : drone ???
+
     def feedback(self, drone, id_event, delay, outcome):
         """
         Feedback returned when the packet arrives at the depot or
@@ -42,7 +43,6 @@ class QLearningRouting(BASE_routing):
             # remove the entry, the action has received the feedback
             del self.taken_actions[id_event]
 
-
     def relay_selection(self, opt_neighbors: list, packet):
         """
         This function returns the best relay to send packets.
@@ -51,13 +51,43 @@ class QLearningRouting(BASE_routing):
         @param opt_neighbors: a list of tuple (hello_packet, source_drone)
         @return: The best drone to use as relay
         """
+        # cell_index = self.get_cell(self.drone.coords)
 
-        #cell_index = self.get_cell(self.drone.coords)
-        relay = None
+        # TODO: nic
+        tr = self.compute_link_param("tr")
+        es = self.compute_link_param("es")
+        fs = self.compute_link_param("fs")
+
+        # TODO: giacomo
+        hc = None
+        spdt = None
+
+        # TODO: davide
+        action = self.fuzzy_logic(tr, es, fs, hc, spdt)
 
         state, action = None, None
         self.taken_actions[packet.event_ref.identifier] = (state, action)
+        relay = None
         return relay
+
+    def compute_link_param(self, flag):
+        if flag == "tr":
+            return 0
+        elif flag == "es":
+            return 0
+        else:
+            return 0
+
+    def fuzzy_logic(self, tr, es, fs, hc, spdt):
+        return 0
+
+
+
+
+
+
+
+
 
     def select_best_neigh(self, opt_neighbours):  # select the fastest drone that could reach the depeot
         relay = None
