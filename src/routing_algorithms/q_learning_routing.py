@@ -1,6 +1,7 @@
 from src.routing_algorithms.BASE_routing import BASE_routing
 from src.utilities import utilities as util
 import random
+import tables as tables
 
 
 class QLearningRouting(BASE_routing):
@@ -79,11 +80,17 @@ class QLearningRouting(BASE_routing):
             return 0
 
     def fuzzy_logic(self, tr, es, fs, hc, spdt):
-        return 0
+        tr, es, fs, hc, spdt = self.fuzzification(tr, es, fs, hc, spdt)
+        initial_route = tables.table_link_param(tr, es, fs)
+        route = tables.table_link_routh_param(tr, es, fs, hc, spdt)
+        output = self.defuzzification(route)
+        return output
 
+    def fuzzification(self, tr, es, fs, hc, spdt):
+        return None, None, None, None, None
 
-
-
+    def defuzzification(self, route):
+        return None
 
 
 
