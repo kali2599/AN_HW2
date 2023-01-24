@@ -1,7 +1,9 @@
 from src.routing_algorithms.BASE_routing import BASE_routing
 from src.utilities import utilities as util
-import random
+import math
+import numpy as np
 import tables as tables
+from src.utilities import config as config
 
 
 class QLearningRouting(BASE_routing):
@@ -10,6 +12,11 @@ class QLearningRouting(BASE_routing):
         BASE_routing.__init__(self, drone=drone, simulator=simulator)
         self.taken_actions = {}  # id event : (old_state, old_action)
         self.qtable = {}  # drone : drone ???
+        self.link_parameters = {}  # drone : (TR, ES, FS)
+        n = 0
+        N = simulator.n_drones
+        # for n in range(N):
+            # self.link_parameters[n] = (None, None, None)
 
     def feedback(self, drone, id_event, delay, outcome):
         """
@@ -43,6 +50,11 @@ class QLearningRouting(BASE_routing):
 
             # remove the entry, the action has received the feedback
             del self.taken_actions[id_event]
+            # TODO: compute here the TR
+            if outcome:
+                self.drone.successful_deliveries += 1
+                self.drone.tr = self.drone.successful_deliveries / self.drone.buffer_length()
+
 
     def relay_selection(self, opt_neighbors: list, packet):
         """
@@ -52,32 +64,54 @@ class QLearningRouting(BASE_routing):
         @param opt_neighbors: a list of tuple (hello_packet, source_drone)
         @return: The best drone to use as relay
         """
-        # cell_index = self.get_cell(self.drone.coords)
 
-        # TODO: nic
-        tr = self.compute_link_param("tr")
-        es = self.compute_link_param("es")
-        fs = self.compute_link_param("fs")
-
-        # TODO: giacomo
+        # TODO: giacomo & nic
         hc = None
         spdt = None
 
         # TODO: davide
-        action = self.fuzzy_logic(tr, es, fs, hc, spdt)
+        # UPDATE ALL LINK PARAMETERS
+        for hello_pck, neigh in opt_neighbors:
+            self.link_parameters[neigh] = self.update_link_param(neigh, hello_pck)
 
-        state, action = None, None
+        # FUZZY LOGIC
+        candidates = []
+        for hello, neigh in opt_neighbors:
+            tr, es, fs = self.link_parameters[neigh](0), self.link_parameters[neigh](1), self.link_parameters[neigh](2)
+            candidates.append( (neigh, self.fuzzy_logic(tr, es, fs, hc, spdt)) )
+
+        cur_priority = 0
+        for drone, priority in candidates:
+            if priority > cur_priority:
+                cur_priority = priority
+                relay = drone
+
+        state, action = None, relay
         self.taken_actions[packet.event_ref.identifier] = (state, action)
         relay = None
         return relay
 
-    def compute_link_param(self, flag):
-        if flag == "tr":
-            return 0
-        elif flag == "es":
-            return 0
-        else:
-            return 0
+    def update_link_param(self, neigh, hello_pck):
+        tr = neigh.tr
+
+        b1, b2 = 0.5, 0.5
+        rej = hello_pck.residual_energy  # residual energy of neigh # TODO: modify hello_pck configurations
+        edr_j = hello_pck.speed / config.DRONE_MAX_ENERGY  # energy drain rate of neigh computed based on the velocity (and maybe on the transmission?)
+        ie = config.DRONE_MAX_ENERGY  # initial energy for all nodes
+        es = b1 * (rej / ie) - b2 * edr_j
+
+        vj = hello_pck.speed  # velocity of neigh
+        pos_neigh = hello_pck.cur_pos
+        next_pos_neigh = hello_pck.next_target
+        J = (None, None)  # destination node, maybe next_pos_neigh?
+        teta_i = util.angle_between_points(self.drone.coords, J, pos_neigh)
+        teta_j = util.angle_between_points(pos_neigh, J, self.drone.coords)
+        cos_jd = (J * pos_neigh) / (
+                np.linalg.norm(J) + np.linalg.norm(pos_neigh))  # projection vector of node-neigh on the destination
+        pdj = vj * cos_jd
+        fs = math.cos(teta_i - teta_j) * pdj
+
+        return tr, fs, es
 
     def fuzzy_logic(self, tr, es, fs, hc, spdt):
         tr, es, fs, hc, spdt = self.fuzzification(tr, es, fs, hc, spdt)
@@ -87,14 +121,26 @@ class QLearningRouting(BASE_routing):
         return output
 
     def fuzzification(self, tr, es, fs, hc, spdt):
-        return None, None, None, None, None
+        tr_fuzz = "m" if tr < 0.8 else "h"
+        es_fuzz = "l" if es < 6 else "h"
+        fs_fuzz = "b" if fs < 5 else "g"
+        hc_fuzz = "sm" if hc < 5 else "lg"
+        spdt_fuzz = "sh" if spdt < 0.1 else "ln"
+        return tr_fuzz, es_fuzz, fs_fuzz, hc_fuzz, spdt_fuzz
 
     def defuzzification(self, route):
-        return None
-
-
-
-
+        crisp_output = 0
+        if route == "o_vb":
+            crisp_output = 0
+        if route == "o_b":
+            crisp_output = 1
+        if route == "o_act":
+            crisp_output = 2
+        if crisp_output == "o_g":
+            crisp_output = 3
+        if crisp_output == "o_p":
+            crisp_output = 4
+        return crisp_output
 
     def select_best_neigh(self, opt_neighbours):  # select the fastest drone that could reach the depeot
         relay = None
