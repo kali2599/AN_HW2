@@ -105,7 +105,7 @@ class Packet(Entity):
         if event_ref is not None:
             self.add = self.simulator.metrics.drones_packets.add(self)
 
-        self.optional_data = None  # list
+        self.optional_data = None
         self.time_delivery = None
 
         # if the packet was sent with move routing or not
@@ -183,7 +183,6 @@ class HelloPacket(Packet):
         self.speed = speed
         self.next_target = next_target
         self.src_drone = src_drone  # Don't use this
-
 
 
 # ------------------ Depot ----------------------

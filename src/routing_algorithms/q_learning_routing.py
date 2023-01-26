@@ -48,12 +48,31 @@ class QLearningRouting(BASE_routing):
 
             # remove the entry, the action has received the feedback
             del self.taken_actions[id_event]
-            # TODO: compute here the TR
+
+            # TODO: Davide, compute here the TR
             self.drone.number_packets += 1
             if outcome == 1:
                 self.drone.successful_deliveries += 1
+            self.drone.tr = self.drone.successful_deliveries / self.drone.number_packets
+
+            # TODO: Nic e Giacomo, Q-Learning
+            # UPDATE Q-TABLE
+            if state in self.qtable:
+                if action in self.qtable[state]:
+                    self.qtable[state][action][0] += 0  # HC
+                    self.qtable[state][action][1] += 0  # SPDT
+                else:
+                    self.qtable[state][action] = [0, 0]
+                    self.qtable[state][action][0] = 0  # HC
+                    self.qtable[state][action][1] = 0  # SPDT
             else:
-                self.drone.tr = self.drone.successful_deliveries / self.drone.number_packets
+                self.qtable[state] = {}
+                self.qtable[state][action] = [0, 0]
+                self.qtable[state][action][0] = 0  # HC
+                self.qtable[state][action][1] = 0  # SPDT
+
+            #if self.drone.identifier == 1:
+                #print(self.qtable)
 
     def relay_selection(self, opt_neighbors: list, packet):
         """
@@ -67,17 +86,22 @@ class QLearningRouting(BASE_routing):
         # TODO: giacomo & nic
         hc = None
         spdt = None
+        state = packet.last_2_hops[0]  # TODO:  understand if is 0 or 1
+        #if state in self.qtable:
+            #for action_ in self.qtable[state]:
+                #hc = self.qtable[state][action_][0]
+                #spdt = self.qtable[state][action_][1]
 
         # TODO: davide
 
-        #update residual energy
+        # update residual energyh
         self.drone.residual_energy -= 100
 
         # UPDATE ALL LINK PARAMETERS
         for hello_pck, neigh in opt_neighbors:
             self.link_parameters[neigh] = self.update_link_param(neigh, hello_pck)
-            if self.drone.identifier == 1:
-                print(str(neigh.identifier) + " : " + str(hello_pck.optional_data))
+            # if self.drone.identifier == 1:
+            # print(str(neigh.identifier) + " : " + str(hello_pck.optional_data))
 
         # FUZZY LOGIC
         candidates = []
@@ -86,7 +110,7 @@ class QLearningRouting(BASE_routing):
             candidates.append((neigh, self.fuzzy_logic(tr, es, fs, hc, spdt)))
 
         relay = None
-        cur_priority = 0
+        cur_priority = -1
         for drone, priority in candidates:
             if priority > cur_priority:
                 cur_priority = priority
@@ -98,7 +122,7 @@ class QLearningRouting(BASE_routing):
             relay = self.select_best_neigh(opt_neighbors)
             self.simulator.exploitation[0] += 1
 
-        state, action = None, relay
+        action = relay  # state defined above
         self.taken_actions[packet.event_ref.identifier] = (state, action)
         return relay
 
@@ -118,7 +142,7 @@ class QLearningRouting(BASE_routing):
         teta_i = util.angle_between_points(self.drone.coords, J, pos_neigh)
         teta_j = util.angle_between_points(pos_neigh, J, self.drone.coords)
         cos_jd = np.dot(J, pos_neigh) / (
-                    np.linalg.norm(J) * np.linalg.norm(pos_neigh))  # projection vector of node-neigh on the destination
+                np.linalg.norm(J) * np.linalg.norm(pos_neigh))  # projection vector of node-neigh on the destination
         pdj = vj * cos_jd
         fs = math.cos(teta_i - teta_j) * pdj
 
@@ -127,7 +151,8 @@ class QLearningRouting(BASE_routing):
     def fuzzy_logic(self, tr, es, fs, hc, spdt):
         tr, es, fs, hc, spdt = self.fuzzification(tr, es, fs, hc, spdt)
         route = tables.table_link_param(tr, es, fs)
-        # route = tables.table_link_routh_param(tr, es, fs, hc, spdt)
+        if hc is not None and spdt is not None:  # i.e, there aren't path-parameters
+            route = tables.table_link_routh_param(tr, es, fs, hc, spdt)
         output = self.defuzzification(route)
         return output
 
