@@ -93,6 +93,10 @@ class BASE_routing(metaclass=abc.ABCMeta):
             for hpk_id in self.hello_messages:
                 hpk: HelloPacket = self.hello_messages[hpk_id]
 
+                # MY CHANGES
+                data = ( self.drone.residual_energy, self.drone.tr )
+                hpk.append_optional_data(data)
+
                 # check if packet is too old
                 if hpk.time_step_creation < cur_step - config.OLD_HELLO_PACKET:
                     continue

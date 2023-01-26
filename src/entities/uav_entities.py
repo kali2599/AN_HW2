@@ -183,7 +183,7 @@ class HelloPacket(Packet):
         self.speed = speed
         self.next_target = next_target
         self.src_drone = src_drone  # Don't use this
-        self.residual_energy = 1000  # TODO: modify this value
+
 
 
 # ------------------ Depot ----------------------
@@ -261,6 +261,7 @@ class Drone(Entity):
         # MY CHANGES
         self.tr = 0
         self.successful_deliveries = 0
+        self.number_packets = 0
 
     def update_packets(self, cur_step):
         """

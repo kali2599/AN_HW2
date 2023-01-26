@@ -238,6 +238,7 @@ class Simulator:
     def close(self):
         """ do some stuff at the end of simulation"""
         print("Closing simulation")
+        print("ALGORITHM IN PLACE: " + self.routing_algorithm.name)
 
         self.print_metrics(plot_id="final")
         self.save_metrics(config.ROOT_EVALUATION_DATA + self.simulation_name)
