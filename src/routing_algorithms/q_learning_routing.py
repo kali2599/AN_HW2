@@ -84,9 +84,10 @@ class QLearningRouting(BASE_routing):
         """
 
         # TODO: giacomo & nic
+        state = self.drone.identifier
         hc = None
         spdt = None
-        state = packet.last_2_hops[0]  # TODO:  understand if is 0 or 1
+
         #if state in self.qtable:
             #for action_ in self.qtable[state]:
                 #hc = self.qtable[state][action_][0]

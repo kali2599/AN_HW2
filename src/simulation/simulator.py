@@ -95,9 +95,19 @@ class Simulator:
         self.start = time.time()
         self.event_generator = utilities.EventGenerator(self)
 
-        # Counts of the actions taken
+        # Counts of the actions taken (HW1)
         self.exploitation = [0, 0]  # first cell: the state is already known
         self.exploration = 0
+
+        # CHANGES HW2
+        self.qtable_hc = {}
+        self.qtable_spdt = {}
+        for i in range(n_drones):
+            self.qtable_hc[i] = {}
+            self.qtable_hc[i][i] = 0
+
+            self.qtable_spdt[i] = {}
+            self.qtable_spdt[i][i] = 0
 
     def __setup_net_dispatcher(self):
         self.network_dispatcher = MediumDispatcher(self.metrics)
