@@ -85,8 +85,6 @@ class BASE_routing(metaclass=abc.ABCMeta):
             self.current_n_transmission = 0
             return
 
-
-
         if cur_step % self.simulator.drone_retransmission_delta == 0:
 
             opt_neighbors = []
@@ -94,7 +92,7 @@ class BASE_routing(metaclass=abc.ABCMeta):
                 hpk: HelloPacket = self.hello_messages[hpk_id]
 
                 # MY CHANGES
-                data = ( self.drone.residual_energy, self.drone.tr )
+                data = (self.drone.residual_energy, self.drone.tr)
                 hpk.append_optional_data(data)
 
                 # check if packet is too old
@@ -117,7 +115,6 @@ class BASE_routing(metaclass=abc.ABCMeta):
                     best_neighbor = self.relay_selection(opt_neighbors, pkd)  # compute score
 
                 if best_neighbor is not None:
-
                     self.unicast_message(pkd, self.drone, best_neighbor, cur_step)
 
                 self.current_n_transmission += 1

@@ -85,7 +85,14 @@ class Simulator:
         self.__setup_net_dispatcher()
 
         # Setup the simulation
+        print("------simultaion------")
+
+        # Qtables
+        self.qtable_hc = dict()
+        self.qtable_spdt = dict()
+
         self.__set_simulation()
+        print("------end------\n")
         self.__set_metrics()
 
         self.simulation_name = "simulation-" + utilities.date() + "_" + str(simulation_name) + "_" + str(
@@ -98,6 +105,8 @@ class Simulator:
         # Counts of the actions taken
         self.exploitation = [0, 0]  # first cell: the state is already known
         self.exploration = 0
+
+
 
     def __setup_net_dispatcher(self):
         self.network_dispatcher = MediumDispatcher(self.metrics)
@@ -125,8 +134,14 @@ class Simulator:
 
         self.drones = []
 
+        qtable = dict()
+        for i in range(self.n_drones):
+            self.qtable_hc[i] = dict()
+            self.qtable_spdt[i] = dict()
+
         # drone 0 is the first
         for i in range(self.n_drones):
+            print("drone " + str(i))
             self.drones.append(Drone(i, self.path_manager.path(i, self), self.depot, self))
 
         self.environment.add_drones(self.drones)

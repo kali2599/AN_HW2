@@ -13,8 +13,12 @@ class QLearningRouting(BASE_routing):
     def __init__(self, drone, simulator):
         BASE_routing.__init__(self, drone=drone, simulator=simulator)
         self.taken_actions = {}  # id event : (old_state, old_action)
-        self.qtable = {}  # drone : drone ???
+        # self.qtable = {}  # drone : drone ???
         self.link_parameters = {}  # drone : (TR, ES, FS)
+        print("drone: ", drone, "simulator: ", simulator)
+        self.qtable_hc = simulator.qtable_hc
+        self.qtable_spdt = simulator.qtable_spdt
+
 
     def feedback(self, drone, id_event, delay, outcome):
         """
@@ -40,11 +44,12 @@ class QLearningRouting(BASE_routing):
 
             # Drone id and Taken actions
             # print(f"\nIdentifier: {self.drone.identifier}, Taken Actions: {self.taken_actions}, Time Step: {self.simulator.cur_step}")
-
-            # feedback from the environment
+            #
+            # # feedback from the environment
             # print(drone, id_event, delay, outcome)
 
             state, action = self.taken_actions[id_event]
+            # print(drone, state, action, " : " + str(outcome))
 
             # remove the entry, the action has received the feedback
             del self.taken_actions[id_event]
@@ -57,19 +62,19 @@ class QLearningRouting(BASE_routing):
 
             # TODO: Nic e Giacomo, Q-Learning
             # UPDATE Q-TABLE
-            if state in self.qtable:
-                if action in self.qtable[state]:
-                    self.qtable[state][action][0] += 0  # HC
-                    self.qtable[state][action][1] += 0  # SPDT
-                else:
-                    self.qtable[state][action] = [0, 0]
-                    self.qtable[state][action][0] = 0  # HC
-                    self.qtable[state][action][1] = 0  # SPDT
-            else:
-                self.qtable[state] = {}
-                self.qtable[state][action] = [0, 0]
-                self.qtable[state][action][0] = 0  # HC
-                self.qtable[state][action][1] = 0  # SPDT
+            # if state in self.qtable:
+            #     if action in self.qtable[state]:
+            #         self.qtable[state][action][0] += 0  # HC
+            #         self.qtable[state][action][1] += 0  # SPDT
+            #     else:
+            #         self.qtable[state][action] = [0, 0]
+            #         self.qtable[state][action][0] = 0  # HC
+            #         self.qtable[state][action][1] = 0  # SPDT
+            # else:
+            #     self.qtable[state] = {}
+            #     self.qtable[state][action] = [0, 0]
+            #     self.qtable[state][action][0] = 0  # HC
+            #     self.qtable[state][action][1] = 0  # SPDT
 
             #if self.drone.identifier == 1:
                 #print(self.qtable)

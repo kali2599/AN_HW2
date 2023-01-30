@@ -201,6 +201,8 @@ class Depot(Entity):
     def transfer_notified_packets(self, current_drone, cur_step):
         """ function called when a drone wants to offload packets to the depot """
 
+        print("---------", current_drone, "----------")
+        print(current_drone.next_target())
         packets_to_offload = current_drone.all_packets()
         self.__buffer += packets_to_offload
 
@@ -250,7 +252,9 @@ class Drone(Entity):
         self.move_routing = False  # if true, it moves to the depot
 
         # setup drone routing algorithm
+        print(self.identifier)
         self.routing_algorithm = self.simulator.routing_algorithm.value(self, self.simulator)
+
 
         # drone state simulator
 
