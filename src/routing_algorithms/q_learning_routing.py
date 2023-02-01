@@ -49,38 +49,18 @@ class QLearningRouting(BASE_routing):
             # remove the entry, the action has received the feedback
             del self.taken_actions[id_event]
 
-            # TODO: Davide, compute here the TR
+            # UPDATE TR
             self.drone.number_packets += 1
             if outcome == 1:
                 self.drone.successful_deliveries += 1
             self.drone.tr = self.drone.successful_deliveries / self.drone.number_packets
 
-            # TODO: Nic e Giacomo, Q-Learning
             # UPDATE Q-TABLE
-            """
-            a, y = 0.5, 0.5
-            if state in self.qtable:
-                maxQh = self.extract_max(self.qtable[state], 1)
-                maxQt = self.extract_max(self.qtable[state], 0)
-                if action in self.qtable[state]:
-                    self.qtable[state][action][0] = (1 - a) * self.qtable[state][action][0] + a * (y * maxQh)  # HC
-                    self.qtable[state][action][1] = (1 - a) * self.qtable[state][action][1] + a * (y * maxQt - delay)  # SPDT
-                else:
-                    self.qtable[state][action] = [0, 0]
-                    self.qtable[state][action][0] = a * (y * maxQh)  # HC
-                    self.qtable[state][action][1] = a * (y * maxQt - delay)  # SPDT
-            else:
-                self.qtable[state] = {}
-                self.qtable[state][action] = [0, 0]
-                self.qtable[state][action][0] = 0  # HC
-                self.qtable[state][action][1] = 0  # SPDT
-            """
-
             a, y = 0.5, 0.7
 
             # UPDATE Q-TABLE-HC, Q-TABLE-SPDT
             action = action.identifier
-            next_state = 0  # TODO
+            next_state = action
             min_hc = min(self.simulator.qtable_hc[next_state], key=self.simulator.qtable_hc[state].get)
             r_hc = hops_count  # REWARD FOR HC (more higher -> more "negative")
             self.simulator.qtable_hc[state][action] = (1 - a) * self.simulator.qtable_hc[state][action] + a * (
