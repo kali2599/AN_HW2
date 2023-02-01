@@ -103,11 +103,14 @@ class Simulator:
         self.qtable_hc = {}
         self.qtable_spdt = {}
         for i in range(n_drones):
+
             self.qtable_hc[i] = {}
-            self.qtable_hc[i][i] = 0
+            for j in range(n_drones):
+                self.qtable_hc[i][j] = 0
 
             self.qtable_spdt[i] = {}
-            self.qtable_spdt[i][i] = 0
+            for j in range(n_drones):
+                self.qtable_spdt[i][j] = 0
 
     def __setup_net_dispatcher(self):
         self.network_dispatcher = MediumDispatcher(self.metrics)
@@ -212,7 +215,7 @@ class Simulator:
         Simulator main function
         @return: None
         """
-
+        #print(self.qtable_hc)
         for cur_step in range(self.len_simulation):
 
             self.cur_step = cur_step
@@ -252,9 +255,14 @@ class Simulator:
 
         self.print_metrics(plot_id="final")
         self.save_metrics(config.ROOT_EVALUATION_DATA + self.simulation_name)
-        print("EXPLOITATION : " + str(sum(self.exploitation)) + "   (" + str(self.exploitation[0]) + ", " + str(self.exploitation[1])+")")
-        print("EXPLORATION : " + str(self.exploration))
-        print("--------------------------------------------------------------\n")
+        #print("EXPLOITATION : " + str(sum(self.exploitation)) + "   (" + str(self.exploitation[0]) + ", " + str(self.exploitation[1])+")")
+        #print("EXPLORATION : " + str(self.exploration))
+        print("HC:--------------------------------------------------------------")
+        print(self.qtable_hc)
+        #print()
+        print("SPDT:------------------------------------------------------------")
+        print(self.qtable_spdt)
+
 
     def print_metrics(self, plot_id="final"):
         """ add signature """

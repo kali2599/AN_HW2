@@ -44,7 +44,7 @@ class QLearningRouting(BASE_routing):
             # feedback from the environment
             # print(drone, id_event, delay, outcome)
 
-            state, action = self.taken_actions[id_event]
+            state, action, hops_count, pck_creation_time = self.taken_actions[id_event]
 
             # remove the entry, the action has received the feedback
             del self.taken_actions[id_event]
@@ -57,22 +57,42 @@ class QLearningRouting(BASE_routing):
 
             # TODO: Nic e Giacomo, Q-Learning
             # UPDATE Q-TABLE
+            """
+            a, y = 0.5, 0.5
             if state in self.qtable:
+                maxQh = self.extract_max(self.qtable[state], 1)
+                maxQt = self.extract_max(self.qtable[state], 0)
                 if action in self.qtable[state]:
-                    self.qtable[state][action][0] += 0  # HC
-                    self.qtable[state][action][1] += 0  # SPDT
+                    self.qtable[state][action][0] = (1 - a) * self.qtable[state][action][0] + a * (y * maxQh)  # HC
+                    self.qtable[state][action][1] = (1 - a) * self.qtable[state][action][1] + a * (y * maxQt - delay)  # SPDT
                 else:
                     self.qtable[state][action] = [0, 0]
-                    self.qtable[state][action][0] = 0  # HC
-                    self.qtable[state][action][1] = 0  # SPDT
+                    self.qtable[state][action][0] = a * (y * maxQh)  # HC
+                    self.qtable[state][action][1] = a * (y * maxQt - delay)  # SPDT
             else:
                 self.qtable[state] = {}
                 self.qtable[state][action] = [0, 0]
                 self.qtable[state][action][0] = 0  # HC
                 self.qtable[state][action][1] = 0  # SPDT
+            """
 
-            #if self.drone.identifier == 1:
-                #print(self.qtable)
+            a, y = 0.5, 0.7
+
+            # UPDATE Q-TABLE-HC, Q-TABLE-SPDT
+            action = action.identifier
+            next_state = 0  # TODO
+            min_hc = min(self.simulator.qtable_hc[next_state], key=self.simulator.qtable_hc[state].get)
+            r_hc = hops_count  # REWARD FOR HC (more higher -> more "negative")
+            self.simulator.qtable_hc[state][action] = (1 - a) * self.simulator.qtable_hc[state][action] + a * (
+                        r_hc + y * min_hc)
+
+            # r_spdt = delay
+            total_delay = self.simulator.cur_step - pck_creation_time
+            if total_delay > 2000:
+                total_delay = 2000
+            min_spdt = min(self.simulator.qtable_spdt[next_state], key=self.simulator.qtable_spdt[state].get)
+            self.simulator.qtable_spdt[state][action] = ((1 - a) * self.simulator.qtable_spdt[state][action] + a * (
+                        y * min_spdt + delay)) / 2000
 
     def relay_selection(self, opt_neighbors: list, packet):
         """
@@ -83,20 +103,10 @@ class QLearningRouting(BASE_routing):
         @return: The best drone to use as relay
         """
 
-        # TODO: giacomo & nic
-        state = self.drone.identifier
-        hc = None
-        spdt = None
-
-        #if state in self.qtable:
-            #for action_ in self.qtable[state]:
-                #hc = self.qtable[state][action_][0]
-                #spdt = self.qtable[state][action_][1]
-
-        # TODO: davide
-
-        # update residual energyh
+        # UPDATE RESIDUAL ENERGY
         self.drone.residual_energy -= 100
+
+        state = self.drone.identifier
 
         # UPDATE ALL LINK PARAMETERS
         for hello_pck, neigh in opt_neighbors:
@@ -107,24 +117,25 @@ class QLearningRouting(BASE_routing):
         # FUZZY LOGIC
         candidates = []
         for hello, neigh in opt_neighbors:
+            hc, spdt = None, None
             tr, es, fs = self.link_parameters[neigh][0], self.link_parameters[neigh][1], self.link_parameters[neigh][2]
+            if neigh.identifier in self.simulator.qtable_hc[state]:
+                hc = self.simulator.qtable_hc[state][neigh.identifier]
+            if neigh.identifier in self.simulator.qtable_spdt[state]:
+                spdt = self.simulator.qtable_spdt[state][neigh.identifier]
             candidates.append((neigh, self.fuzzy_logic(tr, es, fs, hc, spdt)))
 
+        # RELAY SELECTION
         relay = None
         cur_priority = -1
         for drone, priority in candidates:
             if priority > cur_priority:
                 cur_priority = priority
                 relay = drone
-                self.simulator.exploration += 1
 
-        # the drone hasn't any neigh ?
-        if relay is None:
-            relay = self.select_best_neigh(opt_neighbors)
-            self.simulator.exploitation[0] += 1
-
-        action = relay  # state defined above
-        self.taken_actions[packet.event_ref.identifier] = (state, action)
+        action = relay  # the state is defined above
+        packet.hops += 1
+        self.taken_actions[packet.event_ref.identifier] = (state, action, packet.hops, packet.time_step_creation)
         return relay
 
     def update_link_param(self, neigh, hello_pck):
@@ -207,3 +218,17 @@ class QLearningRouting(BASE_routing):
                                                  width_area=self.simulator.env_width,
                                                  x_pos=xpos,
                                                  y_pos=ypos)[0]
+
+    def extract_max(self, qtable, flag):
+        if flag:
+            max_ = 0
+            for key in qtable:
+                if qtable[key][0] >= max_:
+                    max_ = qtable[key][0]
+            return max_
+        else:
+            max_ = 0
+            for key in qtable:
+                if qtable[key][1] >= max_:
+                    max_ = qtable[key][1]
+            return max_

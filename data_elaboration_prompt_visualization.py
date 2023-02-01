@@ -82,9 +82,10 @@ def compute_data_avg_std(path: str):
     print(mrg)
     print("Tabella packet_mean_delivery_time con GEO Routing:")
     print(mtg)
+
     print("Tabella packet_delivery_ratio con QL Routing:")
     print(mrq)
-    print("Tabella packet_mean_delivery_time con GEO Routing:")
+    print("Tabella packet_mean_delivery_time con QL Routing:")
     print(mtq)
 
 
