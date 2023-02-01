@@ -202,7 +202,8 @@ class Simulator:
         Simulator main function
         @return: None
         """
-
+        print("Number of drones : "+str(self.n_drones))
+        print("Duration simulation : "+str(self.len_simulation))
         for cur_step in range(self.len_simulation):
 
             self.cur_step = cur_step

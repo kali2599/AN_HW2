@@ -19,8 +19,8 @@ class QLearningRouting(BASE_routing):
             self.qtable_hc[i] = {}
             self.qtable_spdt[i] = {}
             for j in range(self.simulator.n_drones):
-                self.qtable_hc[i][j] = self.simulator.n_drones
-                self.qtable_spdt[i][j] = 1
+                self.qtable_hc[i][j] = 0
+                self.qtable_spdt[i][j] = 0
 
     def feedback(self, drone, id_event, delay, outcome):
         """
@@ -62,19 +62,20 @@ class QLearningRouting(BASE_routing):
             self.drone.tr = self.drone.successful_deliveries / self.drone.number_packets
 
             # UPDATE Q-TABLE
-            a, y = 0.5, 0.7
-            min_hc = min(self.qtable_hc[action], key=self.qtable_hc[action].get)
-            min_spdt = min(self.qtable_spdt[action], key=self.qtable_spdt[action].get)
-            reward_hc = pck_hops
-            reward_spdt = delay/2000
+            a, y = 0.5, 0.5
+            next_state = action
+            min_hc = min(self.qtable_hc[next_state], key=self.qtable_hc[next_state].get)
+            min_spdt = min(self.qtable_spdt[next_state], key=self.qtable_spdt[next_state].get)
+            reward_hc = pck_hops if outcome else pck_hops*1.5
+            reward_spdt = delay/2000 if outcome else 2
             self.qtable_hc[state][action] = (1 - a) * (self.qtable_hc[state][action]) + a * (reward_hc + y * min_hc)
-            self.qtable_spdt[state][action] = (1 - a) * (self.qtable_spdt[state][action]) + a * (
-                        reward_spdt + y * min_spdt)
+            self.qtable_spdt[state][action] = (1 - a) * (self.qtable_spdt[state][action]) + a * (reward_spdt + y * min_spdt)
 
-            #if self.drone.identifier == 0:
-                #print(self.qtable_hc)
-                #print()
-                #print(self.qtable_spdt)
+            if self.simulator.cur_step > self.simulator.len_simulation - 100:
+                print("..................................")
+                print(self.drone)
+                print(self.qtable_hc)
+                print(self.qtable_spdt)
 
     def relay_selection(self, opt_neighbors: list, packet):
         """
@@ -110,7 +111,7 @@ class QLearningRouting(BASE_routing):
                 cur_priority = priority
                 relay = drone
 
-        action = relay.identifier  # state defined above
+        action = relay.identifier  # the state is defined above
         packet.hops += 1
         self.taken_actions[packet.event_ref.identifier] = (state, action, packet.hops)
         return relay
