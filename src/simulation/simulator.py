@@ -242,9 +242,9 @@ class Simulator:
 
         self.print_metrics(plot_id="final")
         self.save_metrics(config.ROOT_EVALUATION_DATA + self.simulation_name)
-        print("EXPLOITATION : " + str(sum(self.exploitation)) + "   (" + str(self.exploitation[0]) + ", " + str(self.exploitation[1])+")")
-        print("EXPLORATION : " + str(self.exploration))
-        print("--------------------------------------------------------------\n")
+        #print("EXPLOITATION : " + str(sum(self.exploitation)) + "   (" + str(self.exploitation[0]) + ", " + str(self.exploitation[1])+")")
+        #print("EXPLORATION : " + str(self.exploration))
+        #print("--------------------------------------------------------------\n")
 
     def print_metrics(self, plot_id="final"):
         """ add signature """

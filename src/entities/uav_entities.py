@@ -111,6 +111,9 @@ class Packet(Entity):
         # if the packet was sent with move routing or not
         self.is_move_packet = None
 
+        # HW2 CHANGES
+        self.hops = 0
+
     def distance_from_depot(self):
         return utilities.euclidean_distance(self.simulator.depot_coordinates, self.coords)
 
