@@ -37,6 +37,17 @@ class BASE_routing(metaclass=abc.ABCMeta):
         elif isinstance(packet, DataPacket):
             self.no_transmission = True
             self.drone.accept_packets([packet])
+
+            packet.add_hop((src_drone.identifier, self.drone.identifier))
+
+            packet_id = packet.event_ref.identifier
+            actions = src_drone.routing_algorithm.taken_actions
+            keys = list(actions.keys())
+            if packet_id in keys:
+                actions[packet_id].append((self.drone.identifier, packet.n_hops))
+            else:
+                actions[packet_id] = [(self.drone.identifier, packet.n_hops)]
+
             # build ack for the reception
             ack_packet = ACKPacket(self.drone, src_drone, self.simulator, packet, current_ts)
             self.unicast_message(ack_packet, self.drone, src_drone, current_ts)
@@ -107,6 +118,8 @@ class BASE_routing(metaclass=abc.ABCMeta):
             # send packets
             for pkd in self.drone.all_packets():
 
+                # pkd.add_hop(self.drone.identifier)
+
                 self.simulator.metrics.mean_numbers_of_possible_relays.append(len(opt_neighbors))
 
                 if self.simulator.routing_algorithm == config.RoutingAlgorithm.RND:
@@ -115,7 +128,10 @@ class BASE_routing(metaclass=abc.ABCMeta):
                     best_neighbor = self.relay_selection(opt_neighbors, pkd)  # compute score
 
                 if best_neighbor is not None:
+                    # pkd.add_hop((self.drone.identifier, best_neighbor.identifier))
                     self.unicast_message(pkd, self.drone, best_neighbor, cur_step)
+                else:
+                    print("NONE")
 
                 self.current_n_transmission += 1
 

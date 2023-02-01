@@ -12,19 +12,21 @@ class QLearningRouting(BASE_routing):
 
     def __init__(self, drone, simulator):
         BASE_routing.__init__(self, drone=drone, simulator=simulator)
-        self.taken_actions = {}  # id event : (old_state, old_action)
-        # self.qtable = {}  # drone : drone ???
+        self.taken_actions = dict()  # id event : (action, hop_number)
         self.link_parameters = {}  # drone : (TR, ES, FS)
-        print("drone: ", drone, "simulator: ", simulator)
         self.qtable_hc = simulator.qtable_hc
         self.qtable_spdt = simulator.qtable_spdt
 
+        self.alpha_h = 1
+        self.alpha_t = 1
+        self.gamma = 1
 
-    def feedback(self, drone, id_event, delay, outcome):
+    def feedback(self, drone, id_event, hops, delay, outcome):
         """
         Feedback returned when the packet arrives at the depot or
         Expire. This function have to be implemented in RL-based protocols ONLY
         @param drone: The drone that holds the packet
+        @hops: all hops of the drone
         @param id_event: The Event id
         @param delay: packet delay
         @param outcome: -1 or 1 (read below)
@@ -38,46 +40,54 @@ class QLearningRouting(BASE_routing):
         # Be aware, due to network errors we can give the same event to multiple drones and receive multiple
         # feedback for the same packet!!
 
-        if id_event in self.taken_actions:
-            # BE AWARE, IMPLEMENT YOUR CODE WITHIN THIS IF CONDITION OTHERWISE IT WON'T WORK!
-            # TIPS: implement here the q-table updating process
+        hope = list(self.taken_actions.keys())
 
-            # Drone id and Taken actions
-            # print(f"\nIdentifier: {self.drone.identifier}, Taken Actions: {self.taken_actions}, Time Step: {self.simulator.cur_step}")
-            #
-            # # feedback from the environment
-            # print(drone, id_event, delay, outcome)
+        if id_event in hope:
 
-            state, action = self.taken_actions[id_event]
-            # print(drone, state, action, " : " + str(outcome))
-
-            # remove the entry, the action has received the feedback
-            del self.taken_actions[id_event]
-
-            # TODO: Davide, compute here the TR
-            self.drone.number_packets += 1
             if outcome == 1:
-                self.drone.successful_deliveries += 1
-            self.drone.tr = self.drone.successful_deliveries / self.drone.number_packets
+                print(self.drone.identifier, " : ", self.taken_actions[id_event])
 
-            # TODO: Nic e Giacomo, Q-Learning
-            # UPDATE Q-TABLE
-            # if state in self.qtable:
-            #     if action in self.qtable[state]:
-            #         self.qtable[state][action][0] += 0  # HC
-            #         self.qtable[state][action][1] += 0  # SPDT
-            #     else:
-            #         self.qtable[state][action] = [0, 0]
-            #         self.qtable[state][action][0] = 0  # HC
-            #         self.qtable[state][action][1] = 0  # SPDT
-            # else:
-            #     self.qtable[state] = {}
-            #     self.qtable[state][action] = [0, 0]
-            #     self.qtable[state][action][0] = 0  # HC
-            #     self.qtable[state][action][1] = 0  # SPDT
 
-            #if self.drone.identifier == 1:
-                #print(self.qtable)
+            return
+            # # BE AWARE, IMPLEMENT YOUR CODE WITHIN THIS IF CONDITION OTHERWISE IT WON'T WORK!
+            # # TIPS: implement here the q-table updating process
+            #
+            # # Drone id and Taken actions
+            # # print(f"\nIdentifier: {self.drone.identifier}, Taken Actions: {self.taken_actions}, Time Step: {self.simulator.cur_step}")
+            # #
+            # # # feedback from the environment
+            # # print(drone, id_event, delay, outcome)
+            #
+            # state, action = self.taken_actions[id_event]
+            # # print(drone, state, action, " : " + str(outcome))
+            #
+            # # remove the entry, the action has received the feedback
+            # del self.taken_actions[id_event]
+            #
+            # # TODO: Davide, compute here the TR
+            # self.drone.number_packets += 1
+            # if outcome == 1:
+            #     self.drone.successful_deliveries += 1
+            # self.drone.tr = self.drone.successful_deliveries / self.drone.number_packets
+            #
+            # # TODO: Nic e Giacomo, Q-Learning
+            # # UPDATE Q-TABLE
+            # # if state in self.qtable:
+            # #     if action in self.qtable[state]:
+            # #         self.qtable[state][action][0] += 0  # HC
+            # #         self.qtable[state][action][1] += 0  # SPDT
+            # #     else:
+            # #         self.qtable[state][action] = [0, 0]
+            # #         self.qtable[state][action][0] = 0  # HC
+            # #         self.qtable[state][action][1] = 0  # SPDT
+            # # else:
+            # #     self.qtable[state] = {}
+            # #     self.qtable[state][action] = [0, 0]
+            # #     self.qtable[state][action][0] = 0  # HC
+            # #     self.qtable[state][action][1] = 0  # SPDT
+            #
+            # # if self.drone.identifier == 1:
+            # # print(self.qtable)
 
     def relay_selection(self, opt_neighbors: list, packet):
         """
@@ -88,16 +98,11 @@ class QLearningRouting(BASE_routing):
         @return: The best drone to use as relay
         """
 
-        # TODO: giacomo & nic
+        packet_id = packet.event_ref.identifier
+
         hc = None
         spdt = None
-        state = packet.last_2_hops[0]  # TODO:  understand if is 0 or 1
-        #if state in self.qtable:
-            #for action_ in self.qtable[state]:
-                #hc = self.qtable[state][action_][0]
-                #spdt = self.qtable[state][action_][1]
-
-        # TODO: davide
+        state = None
 
         # update residual energyh
         self.drone.residual_energy -= 100
@@ -105,8 +110,6 @@ class QLearningRouting(BASE_routing):
         # UPDATE ALL LINK PARAMETERS
         for hello_pck, neigh in opt_neighbors:
             self.link_parameters[neigh] = self.update_link_param(neigh, hello_pck)
-            # if self.drone.identifier == 1:
-            # print(str(neigh.identifier) + " : " + str(hello_pck.optional_data))
 
         # FUZZY LOGIC
         candidates = []
@@ -127,8 +130,23 @@ class QLearningRouting(BASE_routing):
             relay = self.select_best_neigh(opt_neighbors)
             self.simulator.exploitation[0] += 1
 
-        action = relay  # state defined above
-        self.taken_actions[packet.event_ref.identifier] = (state, action)
+        # print(relay, "|", self.drone)
+        # if relay == self.drone.identifier:
+        #     print("ciao")
+        #     return None
+        # print(relay.coords)
+
+        # last_hop = packet.hops[-1]
+        # if last_hop == relay.identifier:
+        #     print("diocane")
+
+        # packet.add_hop((self.drone.identifier, relay.identifier))
+
+        # if packet_id not in set(self.taken_actions.keys()):
+        #     self.taken_actions[packet_id] = [(relay.identifier, packet.n_hops)]
+        # else:
+        #     self.taken_actions[packet_id].append((relay.identifier, packet.n_hops))
+
         return relay
 
     def update_link_param(self, neigh, hello_pck):

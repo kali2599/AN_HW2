@@ -84,15 +84,11 @@ class Simulator:
         # setup network
         self.__setup_net_dispatcher()
 
-        # Setup the simulation
-        print("------simultaion------")
-
-        # Qtables
+        # Setup the simulation and Qtables
         self.qtable_hc = dict()
         self.qtable_spdt = dict()
 
         self.__set_simulation()
-        print("------end------\n")
         self.__set_metrics()
 
         self.simulation_name = "simulation-" + utilities.date() + "_" + str(simulation_name) + "_" + str(
@@ -139,9 +135,11 @@ class Simulator:
             self.qtable_hc[i] = dict()
             self.qtable_spdt[i] = dict()
 
+        print(self.qtable_hc)
+        print(self.qtable_spdt)
+
         # drone 0 is the first
         for i in range(self.n_drones):
-            print("drone " + str(i))
             self.drones.append(Drone(i, self.path_manager.path(i, self), self.depot, self))
 
         self.environment.add_drones(self.drones)
