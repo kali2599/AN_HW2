@@ -21,7 +21,7 @@ class QLearningRouting(BASE_routing):
         self.alpha_t = 1
         self.gamma = 1
 
-    def feedback(self, drone, id_event, hops, delay, outcome):
+    def feedback(self, drone, id_event, hops, n_hops, delay, outcome):
         """
         Feedback returned when the packet arrives at the depot or
         Expire. This function have to be implemented in RL-based protocols ONLY
@@ -46,7 +46,12 @@ class QLearningRouting(BASE_routing):
 
             if outcome == 1:
                 print(self.drone.identifier, " : ", self.taken_actions[id_event])
-
+                my_actions = reversed(self.taken_actions[id_event])
+                for action in my_actions:
+                    drone_id = action[0]
+                    jump = action[1]
+                    dst_node = hops[jump+1][1]
+                    print(drone_id, " | ", jump, " | ", dst_node)
 
             return
             # # BE AWARE, IMPLEMENT YOUR CODE WITHIN THIS IF CONDITION OTHERWISE IT WON'T WORK!

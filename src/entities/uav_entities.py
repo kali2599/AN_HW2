@@ -230,6 +230,7 @@ class Depot(Entity):
                     drone.routing_algorithm.feedback(current_drone,
                                                      pck.event_ref.identifier,
                                                      pck.hops,
+                                                     pck.n_hops,
                                                      delivery_delay,
                                                      feedback)
 
@@ -308,8 +309,9 @@ class Drone(Entity):
 
                     for drone in self.simulator.drones:
                         drone.routing_algorithm.feedback(current_drone,
-                                                         pck.hops,
                                                          pck.event_ref.identifier,
+                                                         pck.hops,
+                                                         pck.n_hops,
                                                          self.simulator.event_duration,
                                                          feedback)
         self.__buffer = tmp_buffer
