@@ -17,9 +17,9 @@ class QLearningRouting(BASE_routing):
         self.qtable_hc = simulator.qtable_hc
         self.qtable_spdt = simulator.qtable_spdt
 
-        self.alpha_h = 1
+        self.alpha_h = 0.9
         self.alpha_t = 1
-        self.gamma = 1
+        self.gamma = 0.9
 
     def feedback(self, drone, id_event, hops, n_hops, delay, outcome):
         """
@@ -43,15 +43,29 @@ class QLearningRouting(BASE_routing):
         hope = list(self.taken_actions.keys())
 
         if id_event in hope:
+            my_id = self.drone.identifier
 
             if outcome == 1:
+                #QHC
+                qhc = self.qtable_hc
+                reward = self.compute_reward(n_hops)
                 print(self.drone.identifier, " : ", self.taken_actions[id_event])
                 my_actions = reversed(self.taken_actions[id_event])
                 for action in my_actions:
                     drone_id = action[0]
                     jump = action[1]
+                    esp = n_hops - jump
                     dst_node = hops[jump+1][1]
                     print(drone_id, " | ", jump, " | ", dst_node)
+                    if dst_node not in qhc[drone_id]:
+                        qhc[drone_id][dst_node] = self.alpha_h**esp * self.gamma**(esp-1) * reward
+                        qhc[my_id][drone_id] = self.alpha_h ** esp * self.gamma ** (esp - 1) * reward
+                    else:
+                        qhc[drone_id][dst_node] = qhc[drone_id][dst_node]*(1-self.alpha_h) + \
+                                                  self.alpha_h ** esp * self.gamma ** (esp - 1) * reward
+                        qhc[my_id][drone_id] = qhc[my_id][drone_id]*(1-self.alpha_h) + \
+                                                  max(qhc[drone_id].values())
+                    print(qhc)
 
             return
             # # BE AWARE, IMPLEMENT YOUR CODE WITHIN THIS IF CONDITION OTHERWISE IT WON'T WORK!
@@ -93,6 +107,9 @@ class QLearningRouting(BASE_routing):
             #
             # # if self.drone.identifier == 1:
             # # print(self.qtable)
+
+    def compute_reward(self, n_hops):
+        return self.simulator.reward_limit - n_hops
 
     def relay_selection(self, opt_neighbors: list, packet):
         """

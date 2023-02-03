@@ -132,8 +132,12 @@ class Simulator:
 
         qtable = dict()
         for i in range(self.n_drones):
-            self.qtable_hc[i] = dict()
-            self.qtable_spdt[i] = dict()
+            qtable[i] = dict()
+        # qtable['d'] = dict()
+        self.qtable_hc = qtable.copy()
+        self.qtable_spdt = qtable.copy()
+
+        self.reward_limit = self.n_drones * self.n_drones
 
         print(self.qtable_hc)
         print(self.qtable_spdt)
