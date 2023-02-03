@@ -106,7 +106,7 @@ class Simulator:
 
             self.qtable_hc[i] = {}
             for j in range(n_drones):
-                self.qtable_hc[i][j] = 0
+                self.qtable_hc[i][j] = 50
 
             self.qtable_spdt[i] = {}
             for j in range(n_drones):
@@ -215,7 +215,10 @@ class Simulator:
         Simulator main function
         @return: None
         """
-        #print(self.qtable_hc)
+        print("ALGORITHM IN PLACE: " + self.routing_algorithm.name)
+        print("Number of drones : " + str(self.n_drones))
+        print("Duration simulation : " + str(self.len_simulation))
+
         for cur_step in range(self.len_simulation):
 
             self.cur_step = cur_step
@@ -251,17 +254,19 @@ class Simulator:
     def close(self):
         """ do some stuff at the end of simulation"""
         print("Closing simulation")
-        print("ALGORITHM IN PLACE: " + self.routing_algorithm.name)
+
 
         self.print_metrics(plot_id="final")
         self.save_metrics(config.ROOT_EVALUATION_DATA + self.simulation_name)
         #print("EXPLOITATION : " + str(sum(self.exploitation)) + "   (" + str(self.exploitation[0]) + ", " + str(self.exploitation[1])+")")
         #print("EXPLORATION : " + str(self.exploration))
         print("HC:--------------------------------------------------------------")
-        print(self.qtable_hc)
-        #print()
+        for key in self.qtable_hc:
+            print(self.qtable_hc[key])
+        print()
         print("SPDT:------------------------------------------------------------")
-        print(self.qtable_spdt)
+        for key in self.qtable_spdt:
+            print(self.qtable_spdt[key])
 
 
     def print_metrics(self, plot_id="final"):
