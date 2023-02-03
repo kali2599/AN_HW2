@@ -130,17 +130,20 @@ class Simulator:
 
         self.drones = []
 
-        qtable = dict()
-        for i in range(self.n_drones):
-            qtable[i] = dict()
-        # qtable['d'] = dict()
-        self.qtable_hc = qtable.copy()
-        self.qtable_spdt = qtable.copy()
+        # zero_dict = dict()
+        # for i in range(self.n_drones):
+        #     zero_dict[i] = 0
+        # zero_dict['d'] = 0
+        # qtable = dict()
+        # for i in range(self.n_drones):
+        #     qtable[i] = zero_dict.copy()
+        # self.qtable_hc = qtable.copy()
+        # self.qtable_spdt = qtable.copy()
 
         self.reward_limit = self.n_drones * self.n_drones
 
-        print(self.qtable_hc)
-        print(self.qtable_spdt)
+        # print(self.qtable_hc)
+        # print(self.qtable_spdt)
 
         # drone 0 is the first
         for i in range(self.n_drones):

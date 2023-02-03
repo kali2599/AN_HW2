@@ -17,6 +17,19 @@ class QLearningRouting(BASE_routing):
         self.qtable_hc = simulator.qtable_hc
         self.qtable_spdt = simulator.qtable_spdt
 
+        zero_dict = dict()
+        for i in range(self.simulator.n_drones):
+            zero_dict[i] = 0
+        zero_dict['d'] = 0
+        qtable = dict()
+        for i in range(self.simulator.n_drones):
+            qtable[i] = zero_dict.copy()
+        self.qtable_hc = qtable.copy()
+        self.qtable_spdt = qtable.copy()
+
+        print(self.qtable_hc)
+        print(self.qtable_spdt)
+
         self.alpha_h = 0.9
         self.alpha_t = 1
         self.gamma = 0.9
@@ -46,7 +59,7 @@ class QLearningRouting(BASE_routing):
             my_id = self.drone.identifier
 
             if outcome == 1:
-                #QHC
+                # QHC
                 qhc = self.qtable_hc
                 reward = self.compute_reward(n_hops)
                 print(self.drone.identifier, " : ", self.taken_actions[id_event])
@@ -55,17 +68,18 @@ class QLearningRouting(BASE_routing):
                     drone_id = action[0]
                     jump = action[1]
                     esp = n_hops - jump
-                    dst_node = hops[jump+1][1]
+                    dst_node = hops[jump + 1][1]
                     print(drone_id, " | ", jump, " | ", dst_node)
-                    if dst_node not in qhc[drone_id]:
-                        qhc[drone_id][dst_node] = self.alpha_h**esp * self.gamma**(esp-1) * reward
-                        qhc[my_id][drone_id] = self.alpha_h ** esp * self.gamma ** (esp - 1) * reward
-                    else:
-                        qhc[drone_id][dst_node] = qhc[drone_id][dst_node]*(1-self.alpha_h) + \
-                                                  self.alpha_h ** esp * self.gamma ** (esp - 1) * reward
-                        qhc[my_id][drone_id] = qhc[my_id][drone_id]*(1-self.alpha_h) + \
-                                                  max(qhc[drone_id].values())
-                    print(qhc)
+                    # if dst_node not in qhc[drone_id]:
+                    #     qhc[drone_id][dst_node] = self.alpha_h**esp * self.gamma**(esp-1) * reward
+                    #     qhc[my_id][drone_id] = self.alpha_h ** esp * self.gamma ** (esp - 1) * reward
+                    # else:
+                    print("pre-update: ", qhc)
+                    qhc[drone_id][dst_node] = qhc[drone_id][dst_node] * (1 - self.alpha_h) + \
+                                              self.alpha_h ** esp * self.gamma ** (esp - 1) * reward
+                    qhc[my_id][drone_id] = qhc[my_id][drone_id] * (1 - self.alpha_h) + \
+                                           self.alpha_h * self.gamma * max(qhc[drone_id].values())
+                    print("post-update: ", qhc)
 
             return
             # # BE AWARE, IMPLEMENT YOUR CODE WITHIN THIS IF CONDITION OTHERWISE IT WON'T WORK!

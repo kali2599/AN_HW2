@@ -226,7 +226,7 @@ class Depot(Entity):
 
                 for drone in self.simulator.drones:
                     # print(pck.hops[-1][1])
-                    print("send feedback " + str(feedback) + " to Drone " + str(drone.identifier))
+                    print("\n-----send feedback " + str(feedback) + " to Drone " + str(drone.identifier), "-----\n")
                     drone.routing_algorithm.feedback(current_drone,
                                                      pck.event_ref.identifier,
                                                      pck.hops,
