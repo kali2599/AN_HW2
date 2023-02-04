@@ -20,7 +20,9 @@ you can initialize the Simulator with non default values.
 class Simulator:
 
     def __init__(self,
+                 sam_time=100,
                  len_simulation=config.SIM_DURATION,
+                 slots=(config.SIM_DURATION / 100) + 1,
                  time_step_duration=config.TS_DURATION,
                  seed=config.SEED,
                  n_drones=config.N_DRONES,
@@ -112,20 +114,18 @@ class Simulator:
             for j in range(n_drones):
                 self.qtable_spdt[i][j] = 0
 
-        #sampling time
-        self.sam_time = 1000
-        #Number of slots time
-        self.slots = int(self.len_simulation / self.sam_time)
-
+        # sampling time
+        self.sam_time = sam_time
+        # Number of slots time
+        self.slots = slots  # int(self.len_simulation / self.sam_time)
         self.qhc_steps = {}
         self.qspdt_steps = {}
-
-        for y in range(self.slots+1):
-
+        for y in range(self.slots):
             self.qhc_steps[y] = 0
             self.qspdt_steps[y] = 0
 
-
+    def slots(self):
+        return self.slots
 
     def __setup_net_dispatcher(self):
         self.network_dispatcher = MediumDispatcher(self.metrics)
@@ -238,18 +238,17 @@ class Simulator:
 
             self.cur_step = cur_step
             if cur_step % self.sam_time == 0:
-                #print(self.qtable_hc, "\n")
+                # print(self.qtable_hc, "\n")
                 for i in range(self.n_drones):
                     for j in range(self.n_drones):
-                        self.qhc_steps[int(self.cur_step/self.sam_time)] += self.qtable_hc[i][j]
-                        self.qspdt_steps[int(self.cur_step/self.sam_time)] += self.qtable_spdt[i][j]
+                        self.qhc_steps[int(self.cur_step / self.sam_time)] += self.qtable_hc[i][j]
+                        self.qspdt_steps[int(self.cur_step / self.sam_time)] += self.qtable_spdt[i][j]
                 k += 1
             if cur_step == self.len_simulation - 1:
                 for i in range(self.n_drones):
                     for j in range(self.n_drones):
                         self.qhc_steps[self.slots] += self.qtable_hc[i][j]
                         self.qspdt_steps[self.slots] += self.qtable_spdt[i][j]
-
 
             # check for new events and remove the expired ones from the environment
             # self.environment.update_events(cur_step)
@@ -284,11 +283,11 @@ class Simulator:
         """ do some stuff at the end of simulation"""
         print("Closing simulation")
 
-
         self.print_metrics(plot_id="final")
         self.save_metrics(config.ROOT_EVALUATION_DATA + self.simulation_name)
-        #print("EXPLOITATION : " + str(sum(self.exploitation)) + "   (" + str(self.exploitation[0]) + ", " + str(self.exploitation[1])+")")
-        #print("EXPLORATION : " + str(self.exploration))
+        # print("EXPLOITATION : " + str(sum(self.exploitation)) + "   (" + str(self.exploitation[0]) + ", " + str(self.exploitation[1])+")")
+        # print("EXPLORATION : " + str(self.exploration))
+        """
         print("HC:--------------------------------------------------------------")
         for key in self.qtable_hc:
             print(self.qtable_hc[key])
@@ -296,10 +295,10 @@ class Simulator:
         print("SPDT:------------------------------------------------------------")
         for key in self.qtable_spdt:
             print(self.qtable_spdt[key])
-
+        """
         for k in range(self.slots):
-            self.qhc_steps[k] = self.qhc_steps[k] / self.n_drones**2
-            self.qspdt_steps[k] = self.qspdt_steps[k] / self.n_drones**2
+            self.qhc_steps[k] = self.qhc_steps[k] / self.n_drones ** 2
+            self.qspdt_steps[k] = self.qspdt_steps[k] / self.n_drones ** 2
 
     def print_metrics(self, plot_id="final"):
         """ add signature """

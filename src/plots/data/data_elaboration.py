@@ -21,6 +21,8 @@ from glob import glob
 import pandas as pd
 from pandas import DataFrame
 import pickle
+from src.simulation.simulator import Simulator
+
 
 def compute_data_avg_std(path: str):
     """
@@ -29,62 +31,91 @@ def compute_data_avg_std(path: str):
     @return: one or more data structure containing data
     """
 
-    #cg = [0, 0, 0, 0, 0, 0]
-    #cr = [0, 0, 0, 0, 0, 0]
+    # cg = [0, 0, 0, 0, 0, 0]
+    # cr = [0, 0, 0, 0, 0, 0]
     cq = [0, 0, 0, 0, 0, 0]
-    #cn = [0, 0, 0, 0, 0, 0]
+    # cn = [0, 0, 0, 0, 0, 0]
 
-    #mrg = [0, 0, 0, 0, 0, 0]
-    #mrr = [0, 0, 0, 0, 0, 0]
+    # mrg = [0, 0, 0, 0, 0, 0]
+    # mrr = [0, 0, 0, 0, 0, 0]
     mrq = [0, 0, 0, 0, 0, 0]
-    #mrn = [0, 0, 0, 0, 0, 0]
+    # mrn = [0, 0, 0, 0, 0, 0]
 
-    #mtg = [0, 0, 0, 0, 0, 0]
-    #mtr = [0, 0, 0, 0, 0, 0]
+    # mtg = [0, 0, 0, 0, 0, 0]
+    # mtr = [0, 0, 0, 0, 0, 0]
     mtq = [0, 0, 0, 0, 0, 0]
-    #mtn = [0, 0, 0, 0, 0, 0]
+    # mtn = [0, 0, 0, 0, 0, 0]
 
-    #dsrg = [0, 0, 0, 0, 0, 0]
-    #dsrr = [0, 0, 0, 0, 0, 0]
+    # dsrg = [0, 0, 0, 0, 0, 0]
+    # dsrr = [0, 0, 0, 0, 0, 0]
     dsrq = [0, 0, 0, 0, 0, 0]
-    #dsrn = [0, 0, 0, 0, 0, 0]
+    # dsrn = [0, 0, 0, 0, 0, 0]
 
-    #dstg = [0, 0, 0, 0, 0, 0]
-    #dstr = [0, 0, 0, 0, 0, 0]
+    # dstg = [0, 0, 0, 0, 0, 0]
+    # dstr = [0, 0, 0, 0, 0, 0]
     dstq = [0, 0, 0, 0, 0, 0]
-    #dstn = [0, 0, 0, 0, 0, 0]
+    # dstn = [0, 0, 0, 0, 0, 0]
 
-    #eqvg = [0, 0, 0, 0, 0, 0]
-    #eqvr = [0, 0, 0, 0, 0, 0]
-    #eqvq = [0, 0, 0, 0, 0, 0]
-    #eqvn = [0, 0, 0, 0, 0, 0]
+    # eqvg = [0, 0, 0, 0, 0, 0]
+    # eqvr = [0, 0, 0, 0, 0, 0]
+    # eqvq = [0, 0, 0, 0, 0, 0]
+    # eqvn = [0, 0, 0, 0, 0, 0]
 
-    #ehg = [0, 0, 0, 0, 0, 0]
-    #ehr = [0, 0, 0, 0, 0, 0]
-    #ehq = [0, 0, 0, 0, 0, 0]
-    #ehn = [0, 0, 0, 0, 0, 0]
+    # ehg = [0, 0, 0, 0, 0, 0]
+    # ehr = [0, 0, 0, 0, 0, 0]
+    # ehq = [0, 0, 0, 0, 0, 0]
+    # ehn = [0, 0, 0, 0, 0, 0]
 
-    #etg = [0, 0, 0, 0, 0, 0]
-    #etr = [0, 0, 0, 0, 0, 0]
-    #etq = [0, 0, 0, 0, 0, 0]
-    #etn = [0, 0, 0, 0, 0, 0]
+    # etg = [0, 0, 0, 0, 0, 0]
+    # etr = [0, 0, 0, 0, 0, 0]
+    # etq = [0, 0, 0, 0, 0, 0]
+    # etn = [0, 0, 0, 0, 0, 0]
 
-    #eg = [0, 0, 0, 0, 0, 0]
-    #er = [0, 0, 0, 0, 0, 0]
-    #eq = [0, 0, 0, 0, 0, 0]
-    #en = [0, 0, 0, 0, 0, 0]
+    # eg = [0, 0, 0, 0, 0, 0]
+    # er = [0, 0, 0, 0, 0, 0]
+    # eq = [0, 0, 0, 0, 0, 0]
+    # en = [0, 0, 0, 0, 0, 0]
 
-    #mnrg = [0, 0, 0, 0, 0, 0]
-    #mnrr = [0, 0, 0, 0, 0, 0]
+    # mnrg = [0, 0, 0, 0, 0, 0]
+    # mnrr = [0, 0, 0, 0, 0, 0]
     mnrq = [0, 0, 0, 0, 0, 0]
-    #mnrn = [0, 0, 0, 0, 0, 0]
+    # mnrn = [0, 0, 0, 0, 0, 0]
 
-    #dsnrg = [0, 0, 0, 0, 0, 0]
-    #dsnrr = [0, 0, 0, 0, 0, 0]
+    # dsnrg = [0, 0, 0, 0, 0, 0]
+    # dsnrr = [0, 0, 0, 0, 0, 0]
     dsnrq = [0, 0, 0, 0, 0, 0]
-    #dsnrn = [0, 0, 0, 0, 0, 0]
+    # dsnrn = [0, 0, 0, 0, 0, 0]
 
+    hc = {}
+    hc[5], hc[10], hc[15], hc[20], hc[25], hc[30] = {}, {}, {}, {}, {}
+    spdt = {}
+    spdt[5], spdt[10], spdt[15], spdt[20], spdt[25], spdt[30] = {}, {}, {}, {}, {}
+    slots = Simulator.slots()
+    print(slots)
+    for key in hc:
+        for i in range(slots):
+            hc[key][i] = 0
+            spdt[key][i] = 0
 
+    count = 0
+    for filename in path:
+        with open(filename) as json_data:
+            data = json.load(json_data)
+        df = pd.DataFrame(data["mission_setup"])
+        ra = df["routing_algorithm"]
+        n_seed = df["seed"][0]
+        n_drones = df["n_drones"][0]
+        qt_hc = data["qhc_steps"]  # meanc_hc
+        qt_spdt = data["qspdt_steps"]  # mean_spdt
+        for key in hc[n_drones]:
+            hc[n_drones][key] += qt_hc[n_drones][key]
+            spdt[n_drones][key] += qt_spdt[n_drones][key]
+        count += 1
+
+    for num_drones in hc:
+        for key in hc[num_drones]:
+            hc[num_drones][key] = hc[num_drones][key] / count
+            spdt[num_drones][key] = spdt[num_drones][key] / count
 
     for filename in path:
 
@@ -99,11 +130,11 @@ def compute_data_avg_std(path: str):
         dt = float(pd.DataFrame({data.get("packet_mean_delivery_time")})[0])
         relay = data["mean_number_of_relays"]
         steps = data["number_of_steps"]
-        qt_hc = data["qhc_steps"]
-        qt_spdt = data["qspdt_steps"]
+        qt_hc = data["qhc_steps"]  # meanc_hc
+        qt_spdt = data["qspdt_steps"]  # mean_spdt
 
-        #mean_hc_for_steps = {}
-        #mean_spdt_for_steps = {}
+        # mean_hc_for_steps = {}
+        # mean_spdt_for_steps = {}
 
         '''if ra[0] == "RoutingAlgorithm.QL":
             for i in range(steps):
@@ -123,21 +154,18 @@ def compute_data_avg_std(path: str):
                 mean_hc_for_steps[i] = mean_hc_for_steps[i]/n_drones
                 mean_spdt_for_steps[i] = mean_spdt_for_steps[i]/n_drones'''
 
-        #print(qt_hc["0"]["0"])
-        #print(qt_spdt["0"]["0"])
+        # print(qt_hc["0"]["0"])
+        # print(qt_spdt["0"]["0"])
 
+        # explt_q_values = data["exploitation"]["q_values"]
+        # explt_heuristic = data["exploitation"]["heuristic"]
+        # explt_total = data["exploitation"]["total"]
+        # explr = data["exploration"]
 
-        #explt_q_values = data["exploitation"]["q_values"]
-        #explt_heuristic = data["exploitation"]["heuristic"]
-        #explt_total = data["exploitation"]["total"]
-        #explr = data["exploration"]
+        # tot_hc=0
+        # for i in range(n_drones):
 
-        #tot_hc=0
-        #for i in range(n_drones):
-
-            #for j in range
-
-
+        # for j in range
 
         i = int((n_drones / 5) - 1)
         j = int(n_seed)
@@ -165,10 +193,10 @@ def compute_data_avg_std(path: str):
         if ra[0] == "RoutingAlgorithm.QL":
             mrq[i] += ratio
             mtq[i] += dt
-            #eqvq[i] += explt_q_values
-            #ehq[i] += explt_heuristic
-            #etq[i] += explt_total
-            #eq[i] += explr
+            # eqvq[i] += explt_q_values
+            # ehq[i] += explt_heuristic
+            # etq[i] += explt_total
+            # eq[i] += explr
             mnrq[i] += relay
             cq[i] += 1
 
@@ -218,20 +246,20 @@ def compute_data_avg_std(path: str):
             mnrr[i] = -1'''
 
         if mrq[i] > 0:
-            mrq[i] = round(mrq[i]/cq[i], 7)
-            mtq[i] = round(mtq[i]/cq[i], 7)
-            #eqvq[i] = round(eqvq[i] / cq[i], 7)
-            #ehq[i] = round(ehq[i] / cq[i], 7)
-            #etq[i] = round(etq[i] / cq[i], 7)
-            #eq[i] = round(eq[i] / cq[i], 7)
+            mrq[i] = round(mrq[i] / cq[i], 7)
+            mtq[i] = round(mtq[i] / cq[i], 7)
+            # eqvq[i] = round(eqvq[i] / cq[i], 7)
+            # ehq[i] = round(ehq[i] / cq[i], 7)
+            # etq[i] = round(etq[i] / cq[i], 7)
+            # eq[i] = round(eq[i] / cq[i], 7)
             mnrq[i] = round(mnrq[i] / cq[i], 7)
         else:
             mrq[i] = -1
             mtq[i] = -1
-            #eqvq[i] = -1
-            #ehq[i] = -1
-            #etq[i] = -1
-            #eq[i] = -1
+            # eqvq[i] = -1
+            # ehq[i] = -1
+            # etq[i] = -1
+            # eq[i] = -1
             mnrq[i] = -1
 
         '''if mrn[i] > 0:
@@ -308,8 +336,8 @@ def compute_data_avg_std(path: str):
             dstr[i] = -1
             dsnrr[i] = -1'''
         if dsrq[i] > 0:
-            dsrq[i] = round(pow((dsrq[i]/cq[i]), 1/2), 7)
-            dstq[i] = round(pow((dstq[i]/cq[i]), 1/2), 7)
+            dsrq[i] = round(pow((dsrq[i] / cq[i]), 1 / 2), 7)
+            dstq[i] = round(pow((dstq[i] / cq[i]), 1 / 2), 7)
             dsnrq[i] = round(pow((dsnrq[i] / cq[i]), 1 / 2), 7)
         else:
             dsrq[i] = -1
@@ -454,7 +482,6 @@ def compute_data_avg_std(path: str):
     print("Deviazione standard:")
     print(dsnrn)'''
 
-
     '''out_results = {
                    'mean_packet_delivery_ratio': {'GEO': mrg, 'RND': mrr, 'QL': mrq, 'NQL': mrn},
                    'mean_standard_deviation_ratio': {'GEO': dsrg, 'RND': dsrr, 'QL': dsrq, 'NQL': dsrn},
@@ -474,15 +501,12 @@ def compute_data_avg_std(path: str):
         'mean_standard_deviation_packet_delivery_time': dstq,
         'mean_number_of_relays': mnrq,
         'mean_standard_deviation_relays': dsnrq,
-        'mean_hc': qt_hc,
-        'mean_spdt': qt_spdt
+        'mean_hc': hc,
+        'mean_spdt': spdt
     }
 
     with open("output.json", "w") as outfile:
         json.dump(out_results, outfile)
-
-
-
 
 
 if __name__ == "__main__":

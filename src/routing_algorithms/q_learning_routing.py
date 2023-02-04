@@ -62,20 +62,16 @@ class QLearningRouting(BASE_routing):
                 # print(state == self.drone.identifier)
                 # print(f"Drone: {self.drone.identifier}, Action: {action}")
                 r_hc = hops_count
-                # print(r_hc)
-                r_spdt = delay / 2000
+                r_spdt = 0 if outcome else 1
                 self.simulator.qtable_hc[state][action] = (1 - ah) * self.simulator.qtable_hc[state][action] + ah * r_hc
-                self.simulator.qtable_spdt[state][action] = (1 - at) * self.simulator.qtable_spdt[state][
-                    action] + at * (r_spdt + delay / 2000)
+                self.simulator.qtable_spdt[state][action] = (1 - at) * self.simulator.qtable_spdt[state][action] + at * (r_spdt + delay / 2000)
             else:
                 min_hc = min(self.simulator.qtable_hc[next_state], key=self.simulator.qtable_hc[next_state].get)
-                self.simulator.qtable_hc[state][action] = (1 - ah) * self.simulator.qtable_hc[state][action] + ah * (
-                            y * min_hc)
+                self.simulator.qtable_hc[state][action] = (1 - ah) * self.simulator.qtable_hc[state][action] + ah * (y * min_hc)
 
                 tmm = (delay / hops_count) / 2000
                 min_spdt = min(self.simulator.qtable_spdt[next_state], key=self.simulator.qtable_spdt[next_state].get)
-                self.simulator.qtable_spdt[state][action] = (
-                            (1 - at) * self.simulator.qtable_spdt[state][action] + at * (y * min_spdt + tmm))
+                self.simulator.qtable_spdt[state][action] = (1 - at) * self.simulator.qtable_spdt[state][action] + at * (y * min_spdt - tmm)
 
     def relay_selection(self, opt_neighbors: list, packet):
         """

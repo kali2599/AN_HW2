@@ -8,6 +8,7 @@ You can import constants, lists and dictionaries in plot_data.py
 import numpy as np
 import matplotlib.pyplot as plt
 import json
+from src.utilities.config import SIM_DURATION
 
 LABEL_SIZE = 22
 LEGEND_SIZE = 20
@@ -20,69 +21,62 @@ METRICS_OF_INTEREST = ['mean_packet_delivery_ratio',
                        'mean_standard_deviation_ratio',
                        'mean_packet_delivery_time',
                        'mean_standard_deviation_packet_delivery_time',
-                       'mean_number_of_relays',
-                       'mean_standard_deviation_relays',
-                       ('mean_exploration',
-                        'mean_exploitation_total',
-                        'mean_exploitation_q_values',
-                        'mean_exploitation_heuristic')]
+                       # 'mean_number_of_relays',
+                       # 'mean_standard_deviation_relays',
+                       # ('mean_exploration',
+                       # 'mean_exploitation_total',
+                       # 'mean_exploitation_q_values',
+                       # 'mean_exploitation_heuristic')
+                       'mean_hc',
+                       'mean_spdt']
 
-
-ALGORITHMS = {"QL": {"title": "Cell-Based Routing Algorithm"},
-              "NQL": {"title": "Neighbors-Based Routing Algorithm"},
-              "GEO": {"title": "GEO Routing Algorithm"},
-              "RND": {"title": "Random Routing Algorithm"}}
+ALGORITHMS = {"QL": {"title": "Multi-objective Routing"},
+              # "NQL": {"title": "Neighbors-Based Routing Algorithm"},
+              # "GEO": {"title": "GEO Routing Algorithm"},
+              # "RND": {"title": "Random Routing Algorithm"}
+              }
 
 X_LABEL = "Number of drones"
-Y_LABEL = "Mean values"
+STEPS = SIM_DURATION / 100
+Y_LABEL_MEAN = "Mean values"
+Y_LABEL_DEV = "deviation"
 X_VALUES = np.array([5, 10, 15, 20, 25, 30])
 HEIGHT = 8
 
-
 PLOT_INFO = {
     'mean_packet_delivery_ratio': {
-        "title": "Packet delivery ratio",
-        "y_label": Y_LABEL
+        "title": "Mean Packet delivery ratio",
+        "y_label": Y_LABEL_MEAN + " (ratio)",
+        "x_label": X_LABEL
     },
     'mean_standard_deviation_ratio': {
-        "title": "Standard deviation of packet delivery ratio",
-        "y_label": Y_LABEL
+        "title": "Standard Deviation of packet delivery ratio",
+        "y_label": Y_LABEL_DEV + " (ratio)",
+        "x_label": X_LABEL
     },
     'mean_packet_delivery_time': {
-        "title": "Packet delivery time",
-        "y_label": Y_LABEL + " (ms)"
+        "title": "Mean Packet delivery time",
+        "y_label": Y_LABEL_MEAN + " (ms)",
+        "x_label": X_LABEL
     },
     'mean_standard_deviation_packet_delivery_time': {
-        "title": "Standard deviation of packet delivery time",
-        "y_label": Y_LABEL + " (ms)"
+        "title": "Standard Deviation of packet delivery time",
+        "y_label": Y_LABEL_DEV + " (ms)",
+        "x_label": X_LABEL
     },
-    'mean_number_of_relays': {
-        "title": "Number of relays",
-        "y_label": Y_LABEL
+    'mean_hc': {
+        "title": "Mean number of hops during the simulation",
+        "y_label": Y_LABEL_MEAN + " (number of hops)",
+        "x_label": "Simulation Lifetime"
+
     },
-    'mean_standard_deviation_relays': {
-        "title": "Standard deviation of number of relays",
-        "y_label": Y_LABEL
-    },
-    'quadruple': {
-        "title": "Exploitation and Exploration",
-        'mean_exploitation_q_values': {
-            "color": "tab:red",
-            "label": "Action taken from q-table"
-        },
-        'mean_exploitation_total': {
-            "color": "tab:purple",
-            "label": "Total exploitation"
-        },
-        'mean_exploitation_heuristic': {
-            "color": "tab:blue",
-            "label": "Action taken with chosen rule"
-        },
-        'mean_exploration': {
-            "color": "tab:green",
-            "label": "Exploration"
-        },
+    "mean_spdt": {
+        "title": "Mean Successfully Delivered Packets during the simulation",
+        "y_label": Y_LABEL_MEAN + " (ms)",
+        "x_label": "Simulation Lifetime"
+
     }
+
 }
 
 # PLOT_COLORS = {
@@ -142,5 +136,3 @@ PLOT_INFO = {
 # }
 
 # *** EXAMPLE ***
-
-

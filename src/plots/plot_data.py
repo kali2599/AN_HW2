@@ -35,7 +35,7 @@ import config
 
 # from src.experiments.json_and_plot import ALL_SIZE
 # from src.plots.config import PLOT_DICT, LABEL_SIZE, LEGEND_SIZE, properties
-
+from src.utilities.config import N_DRONES
 DATA = json.load(open("data/output.json", "r"))
 
 
@@ -46,41 +46,38 @@ def plot(algorithms: list):
     height = config.HEIGHT
     width = height * n_columns
     for metric in metrics:
-        name = metric
-        if type(metric) == type(tuple()):
-            name = "quadruple"
-            fig, axs = plt.subplots(nrows=1, ncols=n_columns, figsize=(width, height))
-            fig.suptitle(config.PLOT_INFO["quadruple"]["title"], fontsize=config.SUP_TITLE_SIZE)
-            bar_width = 0.5
-            for i in range(n_columns):
-                algorithm = algorithms[i]
-                ax = axs[i]
-                step = -(bar_width + bar_width / 2)
-                for t_metric in metric:
-                    ax.bar(config.X_VALUES + step, DATA[t_metric][algorithm], bar_width,
-                           # color=config.PLOT_INFO['quadruple'][t_metric]["color"],
-                           label=config.PLOT_INFO['quadruple'][t_metric]["label"])
-                    ax.tick_params(axis='both', which='major', labelsize=config.TICKS_SIZE)
-                    ax.set_title(label=config.ALGORITHMS[algorithm]["title"], fontsize=config.TITLE_SIZE)
-                    ax.set_xlabel(xlabel=config.X_LABEL, fontsize=config.LABEL_SIZE)
-                    step += bar_width
-                ax.grid(linewidth=0.2, axis='y', color="grey")
-                ax.legend()
-        else:
-            fig, axs = plt.subplots(nrows=1, ncols=n_columns, figsize=(width, height))
-            fig.suptitle(config.PLOT_INFO[metric]["title"], fontsize=config.SUP_TITLE_SIZE)
-            for i in range(n_columns):
-                algorithm = algorithms[i]
-                ax = axs[i]
-                ax.plot(config.X_VALUES, DATA[metric][algorithm], marker='.', ms=10)
+        fig, axs = plt.subplots(nrows=1, ncols=n_columns, figsize=(width, height))
+        # fig.suptitle(config.PLOT_INFO[metric]["title"], fontsize=config.SUP_TITLE_SIZE)
+        #fig.suptitle(fontsize=config.SUP_TITLE_SIZE)
+        if metric == "mean_hc":
+            for key in DATA[metric][key]:
+                values = []
+                for step in DATA[metric][key]:
+                    values.append(DATA[metric][key][step])
+                ax = axs
                 ax.tick_params(axis='both', which='major', labelsize=config.TICKS_SIZE)
-                ax.set_title(label=config.ALGORITHMS[algorithm]["title"], fontsize=config.TITLE_SIZE)
-                ax.set_xlabel(xlabel=config.X_LABEL, fontsize=config.LABEL_SIZE)
+                ax.set_title(label=config.PLOT_INFO[metric]["title"]+" for "+str(key)+" drones", fontsize=config.TITLE_SIZE)
+                ax.set_xlabel(xlabel=config.PLOT_INFO[metric]["x_label"], fontsize=config.LABEL_SIZE)
                 ax.set_ylabel(ylabel=config.PLOT_INFO[metric]["y_label"], fontsize=config.LABEL_SIZE)
                 ax.grid(linewidth=0.3, color="grey")
-        plt.tight_layout()
-        # plt.show()
-        plt.savefig("figures/" + name + ".png", dpi='figure')
+                ax.plot(range(config.STEPS), values, marker='.', ms=10)
+
+        elif metric == "mean_spdt":
+            pass
+        else:
+            for i in range(n_columns):
+                algorithm = algorithms[i]
+                ax = axs
+                ax.plot(config.X_VALUES, DATA[metric], marker='.', ms=10)
+                ax.tick_params(axis='both', which='major', labelsize=config.TICKS_SIZE)
+                ax.set_title(label=config.PLOT_INFO[metric]["title"], fontsize=config.TITLE_SIZE)
+                #ax.set_title(label=config.ALGORITHMS[algorithm]["title"], fontsize=config.TITLE_SIZE)
+                ax.set_xlabel(xlabel=config.PLOT_INFO[metric]["x_label"], fontsize=config.LABEL_SIZE)
+                ax.set_ylabel(ylabel=config.PLOT_INFO[metric]["y_label"], fontsize=config.LABEL_SIZE)
+                ax.grid(linewidth=0.3, color="grey")
+    plt.tight_layout()
+    plt.show()
+    #plt.savefig("figures/" + name + ".png", dpi='figure')
     # plt.clf()
 
     # """
