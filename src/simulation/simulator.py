@@ -102,6 +102,9 @@ class Simulator:
         self.exploitation = [0, 0]  # first cell: the state is already known
         self.exploration = 0
 
+        #test
+        self.max_jumps = 0
+
 
 
     def __setup_net_dispatcher(self):
@@ -140,7 +143,7 @@ class Simulator:
         # self.qtable_hc = qtable.copy()
         # self.qtable_spdt = qtable.copy()
 
-        self.reward_limit = self.n_drones * self.n_drones
+        self.reward_limit = 150
 
         # print(self.qtable_hc)
         # print(self.qtable_spdt)
@@ -251,6 +254,7 @@ class Simulator:
             if self.show_plot or config.SAVE_PLOT:
                 self.__plot(cur_step)
 
+        print("max_hops: ", self.max_jumps)
         if config.DEBUG:
             print("End of simulation, sim time: " + str(
                 (cur_step + 1) * self.time_step_duration) + " sec, #iteration: " + str(cur_step + 1))

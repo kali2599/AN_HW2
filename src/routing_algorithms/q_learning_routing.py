@@ -1,4 +1,3 @@
-import random
 
 from src.routing_algorithms.BASE_routing import BASE_routing
 from src.utilities import utilities as util
@@ -56,32 +55,44 @@ class QLearningRouting(BASE_routing):
         hope = list(self.taken_actions.keys())
 
         if id_event in hope:
+
+            if n_hops > self.simulator.max_jumps:
+                self.simulator.max_jumps = n_hops
+                # print("max: ", self.simulator.max_jumps)
+
             my_id = self.drone.identifier
 
-            if outcome == 1:
-                # QHC
-                qhc = self.qtable_hc
-                reward = self.compute_reward(n_hops)
-                print(self.drone.identifier, " : ", self.taken_actions[id_event])
-                my_actions = reversed(self.taken_actions[id_event])
+            # QHC
+            qhc = self.qtable_hc
+            reward = self.compute_reward_hc(n_hops, outcome)
+            #print(self.drone.identifier, " : ", self.taken_actions[id_event])
+            my_actions = reversed(self.taken_actions[id_event])
+            if outcome > 0:
                 for action in my_actions:
                     drone_id = action[0]
                     jump = action[1]
                     esp = n_hops - jump
                     dst_node = hops[jump + 1][1]
-                    print(drone_id, " | ", jump, " | ", dst_node)
+                    #print(drone_id, " | ", jump, " | ", dst_node)
                     # if dst_node not in qhc[drone_id]:
                     #     qhc[drone_id][dst_node] = self.alpha_h**esp * self.gamma**(esp-1) * reward
                     #     qhc[my_id][drone_id] = self.alpha_h ** esp * self.gamma ** (esp - 1) * reward
                     # else:
-                    print("pre-update: ", qhc)
+                    #print("pre-update: ", qhc)
                     qhc[drone_id][dst_node] = qhc[drone_id][dst_node] * (1 - self.alpha_h) + \
                                               self.alpha_h ** esp * self.gamma ** (esp - 1) * reward
                     qhc[my_id][drone_id] = qhc[my_id][drone_id] * (1 - self.alpha_h) + \
                                            self.alpha_h * self.gamma * max(qhc[drone_id].values())
-                    print("post-update: ", qhc)
+                    #print("post-update: ", qhc)
+            else:
+                for action in my_actions:
+                    drone_id = action[0]
+                    jump = action[1]
+                    esp = n_hops - jump
+                    qhc[my_id][drone_id] = qhc[my_id][drone_id] * (1 - self.alpha_h) + \
+                                              self.alpha_h ** esp * self.gamma ** (esp - 1) * reward
 
-            return
+        return
             # # BE AWARE, IMPLEMENT YOUR CODE WITHIN THIS IF CONDITION OTHERWISE IT WON'T WORK!
             # # TIPS: implement here the q-table updating process
             #
@@ -122,8 +133,11 @@ class QLearningRouting(BASE_routing):
             # # if self.drone.identifier == 1:
             # # print(self.qtable)
 
-    def compute_reward(self, n_hops):
-        return self.simulator.reward_limit - n_hops
+    def compute_reward_hc(self, n_hops, outcome):
+        if outcome > 0:
+            return self.simulator.reward_limit - n_hops
+        else:
+            return -n_hops / 10
 
     def relay_selection(self, opt_neighbors: list, packet):
         """
