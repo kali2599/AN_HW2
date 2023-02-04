@@ -213,11 +213,11 @@ class Depot(Entity):
         for pck in packets_to_offload:
             # print("\n####", pck.event_ref.identifier, "####")
 
-            pck.add_hop((current_drone.identifier, "d"))
+            # pck.add_hop((current_drone.identifier, "d"))
             # print("added last hop")
 
             delivery_delay = cur_step - pck.event_ref.current_time
-            # print(pck.event_ref.identifier, ": ", pck.hops, " #" + str(pck.n_hops) + " | time=" + str(delivery_delay) + "\n")
+            print(pck.event_ref.identifier, ": ", pck.hops, " #" + str(pck.n_hops) + " | time=" + str(delivery_delay) + "\n")
 
             if self.simulator.routing_algorithm.name not in "GEO" "RND" "GEOS":
 
@@ -239,7 +239,7 @@ class Depot(Entity):
             self.simulator.metrics.drones_packets_to_depot_list.append((pck, cur_step))
             pck.time_delivery = cur_step
 
-        # print("-----------------------------\n")
+        print("-----------------------------\n")
 
 
 # ------------------ Drone ----------------------

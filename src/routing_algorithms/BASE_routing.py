@@ -188,6 +188,7 @@ class BASE_routing(metaclass=abc.ABCMeta):
     def unicast_message(self, packet, src_drone, dst_drone, curr_step):
         """ send a message to my neigh drones"""
         # Broadcast using Network dispatcher
+        print(self.simulator.cur_step)
         self.simulator.network_dispatcher.send_packet_to_medium(packet, src_drone, dst_drone,
                                                                 curr_step + config.LIL_DELTA)
 

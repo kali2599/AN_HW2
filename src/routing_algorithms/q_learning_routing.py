@@ -1,4 +1,3 @@
-
 from src.routing_algorithms.BASE_routing import BASE_routing
 from src.utilities import utilities as util
 import math
@@ -18,8 +17,8 @@ class QLearningRouting(BASE_routing):
 
         zero_dict = dict()
         for i in range(self.simulator.n_drones):
-            zero_dict[i] = 0
-        zero_dict['d'] = 0
+            zero_dict[i] = None
+        # zero_dict['d'] = None
         qtable = dict()
         for i in range(self.simulator.n_drones):
             qtable[i] = zero_dict.copy()
@@ -29,9 +28,9 @@ class QLearningRouting(BASE_routing):
         print(self.qtable_hc)
         print(self.qtable_spdt)
 
-        self.alpha_h = 0.9
+        self.alpha_h = 0.5
         self.alpha_t = 1
-        self.gamma = 0.9
+        self.gamma = 0.7
 
     def feedback(self, drone, id_event, hops, n_hops, delay, outcome):
         """
@@ -64,80 +63,124 @@ class QLearningRouting(BASE_routing):
 
             # QHC
             qhc = self.qtable_hc
-            reward = self.compute_reward_hc(n_hops, outcome)
-            #print(self.drone.identifier, " : ", self.taken_actions[id_event])
             my_actions = reversed(self.taken_actions[id_event])
+
             if outcome > 0:
+                # print(my_id, "'s actions: ", self.taken_actions[id_event])
                 for action in my_actions:
-                    drone_id = action[0]
+                    action_id = action[0]
                     jump = action[1]
-                    esp = n_hops - jump
-                    dst_node = hops[jump + 1][1]
-                    #print(drone_id, " | ", jump, " | ", dst_node)
-                    # if dst_node not in qhc[drone_id]:
-                    #     qhc[drone_id][dst_node] = self.alpha_h**esp * self.gamma**(esp-1) * reward
-                    #     qhc[my_id][drone_id] = self.alpha_h ** esp * self.gamma ** (esp - 1) * reward
-                    # else:
-                    #print("pre-update: ", qhc)
-                    qhc[drone_id][dst_node] = qhc[drone_id][dst_node] * (1 - self.alpha_h) + \
-                                              self.alpha_h ** esp * self.gamma ** (esp - 1) * reward
-                    qhc[my_id][drone_id] = qhc[my_id][drone_id] * (1 - self.alpha_h) + \
-                                           self.alpha_h * self.gamma * max(qhc[drone_id].values())
-                    #print("post-update: ", qhc)
-            else:
-                for action in my_actions:
-                    drone_id = action[0]
-                    jump = action[1]
-                    esp = n_hops - jump
-                    qhc[my_id][drone_id] = qhc[my_id][drone_id] * (1 - self.alpha_h) + \
-                                              self.alpha_h ** esp * self.gamma ** (esp - 1) * reward
+                    reward = self.compute_reward_hc(n_hops, jump, outcome)
+                    if jump == n_hops:
+                        # print("\naction_id: ", action_id,
+                        #       " | jump: ", jump,
+                        #       " | next_action_id: last_hop",
+                        #       " | reward: ", reward)
+                        self.update_qtables_last_hop(qhc, my_id, action_id, reward)
+                        continue
 
+                    next_action_id = hops[jump + 1][1]
+                    # print("\naction_id: ", action_id,
+                    #       " | jump: ", jump,
+                    #       " | next_action_id: ", next_action_id,
+                    #       " | reward: ", reward)
+                    ###############
+                    self.update_qtables(qhc, my_id, action_id, next_action_id, reward)
+                    # # print(drone_id, " | ", jump, " | ", dst_node)
+                    # # if dst_node not in qhc[drone_id]:
+                    # #     qhc[drone_id][dst_node] = self.alpha_h**esp * self.gamma**(esp-1) * reward
+                    # #     qhc[my_id][drone_id] = self.alpha_h ** esp * self.gamma ** (esp - 1) * reward
+                    # # else:
+                    # # print("pre-update: ", qhc)
+                    # qhc[drone_id][dst_node] = qhc[drone_id][dst_node] * (1 - self.alpha_h) + \
+                    #                           self.alpha_h ** esp * self.gamma ** (esp - 1) * reward
+                    # qhc[my_id][drone_id] = qhc[my_id][drone_id] * (1 - self.alpha_h) + \
+                    #                        self.alpha_h * self.gamma * max(qhc[drone_id].values())
+                    # print("post-update: ", qhc)
+            # else:
+            #     for action in my_actions:
+            #         drone_id = action[0]
+            #         jump = action[1]
+            #         esp = n_hops - jump
+            #         qhc[my_id][drone_id] = qhc[my_id][drone_id] * (1 - self.alpha_h) + \
+            #                                self.alpha_h ** esp * self.gamma ** (esp - 1) * reward
         return
-            # # BE AWARE, IMPLEMENT YOUR CODE WITHIN THIS IF CONDITION OTHERWISE IT WON'T WORK!
-            # # TIPS: implement here the q-table updating process
-            #
-            # # Drone id and Taken actions
-            # # print(f"\nIdentifier: {self.drone.identifier}, Taken Actions: {self.taken_actions}, Time Step: {self.simulator.cur_step}")
-            # #
-            # # # feedback from the environment
-            # # print(drone, id_event, delay, outcome)
-            #
-            # state, action = self.taken_actions[id_event]
-            # # print(drone, state, action, " : " + str(outcome))
-            #
-            # # remove the entry, the action has received the feedback
-            # del self.taken_actions[id_event]
-            #
-            # # TODO: Davide, compute here the TR
-            # self.drone.number_packets += 1
-            # if outcome == 1:
-            #     self.drone.successful_deliveries += 1
-            # self.drone.tr = self.drone.successful_deliveries / self.drone.number_packets
-            #
-            # # TODO: Nic e Giacomo, Q-Learning
-            # # UPDATE Q-TABLE
-            # # if state in self.qtable:
-            # #     if action in self.qtable[state]:
-            # #         self.qtable[state][action][0] += 0  # HC
-            # #         self.qtable[state][action][1] += 0  # SPDT
-            # #     else:
-            # #         self.qtable[state][action] = [0, 0]
-            # #         self.qtable[state][action][0] = 0  # HC
-            # #         self.qtable[state][action][1] = 0  # SPDT
-            # # else:
-            # #     self.qtable[state] = {}
-            # #     self.qtable[state][action] = [0, 0]
-            # #     self.qtable[state][action][0] = 0  # HC
-            # #     self.qtable[state][action][1] = 0  # SPDT
-            #
-            # # if self.drone.identifier == 1:
-            # # print(self.qtable)
+        # # BE AWARE, IMPLEMENT YOUR CODE WITHIN THIS IF CONDITION OTHERWISE IT WON'T WORK!
+        # # TIPS: implement here the q-table updating process
+        #
+        # # Drone id and Taken actions
+        # # print(f"\nIdentifier: {self.drone.identifier}, Taken Actions: {self.taken_actions}, Time Step: {self.simulator.cur_step}")
+        # #
+        # # # feedback from the environment
+        # # print(drone, id_event, delay, outcome)
+        #
+        # state, action = self.taken_actions[id_event]
+        # # print(drone, state, action, " : " + str(outcome))
+        #
+        # # remove the entry, the action has received the feedback
+        # del self.taken_actions[id_event]
+        #
+        # # TODO: Davide, compute here the TR
+        # self.drone.number_packets += 1
+        # if outcome == 1:
+        #     self.drone.successful_deliveries += 1
+        # self.drone.tr = self.drone.successful_deliveries / self.drone.number_packets
+        #
+        # # TODO: Nic e Giacomo, Q-Learning
+        # # UPDATE Q-TABLE
+        # # if state in self.qtable:
+        # #     if action in self.qtable[state]:
+        # #         self.qtable[state][action][0] += 0  # HC
+        # #         self.qtable[state][action][1] += 0  # SPDT
+        # #     else:
+        # #         self.qtable[state][action] = [0, 0]
+        # #         self.qtable[state][action][0] = 0  # HC
+        # #         self.qtable[state][action][1] = 0  # SPDT
+        # # else:
+        # #     self.qtable[state] = {}
+        # #     self.qtable[state][action] = [0, 0]
+        # #     self.qtable[state][action][0] = 0  # HC
+        # #     self.qtable[state][action][1] = 0  # SPDT
+        #
+        # # if self.drone.identifier == 1:
+        # # print(self.qtable)
 
-    def compute_reward_hc(self, n_hops, outcome):
-        if outcome > 0:
-            return self.simulator.reward_limit - n_hops
+    def update_qtables(self, qhc, my_id, action_id, next_action_id, reward):
+        print("pre-update: ", qhc)
+        action_next = qhc[action_id][next_action_id]
+        state_action = qhc[my_id][action_id]
+        if action_next is None:
+            qhc[action_id][next_action_id] = action_next = self.alpha_h * reward
         else:
-            return -n_hops / 10
+            qhc[action_id][next_action_id] = (1 - self.alpha_h) * action_next + self.alpha_h * reward
+
+        print("action_next: ", action_next, " | state_action: ", state_action)
+        if state_action is None:
+            qhc[my_id][action_id] = action_next
+        else:
+            qhc[my_id][action_id] = (1 - self.alpha_h) * state_action + \
+                                    self.alpha_h * (self.gamma * min(
+                filter(lambda x: x is not None, qhc[action_id].values())))
+        print("post-update: ", qhc, end="\n")
+        return
+
+    def update_qtables_last_hop(self, qhc, my_id, action_id, reward):
+        print("pre-update: ", qhc)
+        state_action = qhc[my_id][action_id]
+        if state_action is None:
+            qhc[my_id][action_id] = self.alpha_h * reward
+        else:
+            qhc[my_id][action_id] = (1 - self.alpha_h) * state_action + \
+                                    self.alpha_h * (self.gamma * min(
+                filter(lambda x: x is not None, qhc[action_id].values())))
+        print("post-update: ", qhc, end="\n")
+        return
+
+    def compute_reward_hc(self, n_hops, jump, outcome):
+        if outcome > 0:
+            return n_hops - jump - 1
+        # else:
+        #     return -n_hops / 10
 
     def relay_selection(self, opt_neighbors: list, packet):
         """
@@ -163,10 +206,16 @@ class QLearningRouting(BASE_routing):
 
         # FUZZY LOGIC
         candidates = []
+        # print("\n")
         for hello, neigh in opt_neighbors:
             tr, es, fs = self.link_parameters[neigh][0], self.link_parameters[neigh][1], self.link_parameters[neigh][2]
+            # print("neigh: ", neigh,
+            #       "tr: ", tr,
+            #       "es: ", es,
+            #       "fs: ", fs)
             candidates.append((neigh, self.fuzzy_logic(tr, es, fs, hc, spdt)))
 
+        print(candidates)
         relay = None
         cur_priority = -1
         for drone, priority in candidates:
@@ -174,6 +223,7 @@ class QLearningRouting(BASE_routing):
                 cur_priority = priority
                 relay = drone
                 self.simulator.exploration += 1
+        # print("relay: ", relay, " | priority: ", cur_priority)
 
         # the drone hasn't any neigh ?
         if relay is None:
@@ -196,7 +246,8 @@ class QLearningRouting(BASE_routing):
         #     self.taken_actions[packet_id] = [(relay.identifier, packet.n_hops)]
         # else:
         #     self.taken_actions[packet_id].append((relay.identifier, packet.n_hops))
-
+        print("\n#######", packet_id, "#######")
+        print(self.simulator.cur_step)
         return relay
 
     def update_link_param(self, neigh, hello_pck):
@@ -235,7 +286,7 @@ class QLearningRouting(BASE_routing):
         es_fuzz = "l" if es < 6 else "h"
         fs_fuzz = "b" if fs < 5 else "g"
         if hc is not None:
-            hc_fuzz = "sm" if hc < 5 else "lg"
+            hc_fuzz = "sm" if hc <= 10 else "lg"
         if spdt is not None:
             spdt_fuzz = "sh" if spdt < 0.1 else "ln"
         return tr_fuzz, es_fuzz, fs_fuzz, hc_fuzz, spdt_fuzz
