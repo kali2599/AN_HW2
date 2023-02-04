@@ -20,9 +20,9 @@ you can initialize the Simulator with non default values.
 class Simulator:
 
     def __init__(self,
-                 sam_time=100,
+                 sam_time=1000,
                  len_simulation=config.SIM_DURATION,
-                 slots=(config.SIM_DURATION / 100) + 1,
+                 slots=int((config.SIM_DURATION / 1000)) + 1,
                  time_step_duration=config.TS_DURATION,
                  seed=config.SEED,
                  n_drones=config.N_DRONES,
@@ -247,8 +247,8 @@ class Simulator:
             if cur_step == self.len_simulation - 1:
                 for i in range(self.n_drones):
                     for j in range(self.n_drones):
-                        self.qhc_steps[self.slots] += self.qtable_hc[i][j]
-                        self.qspdt_steps[self.slots] += self.qtable_spdt[i][j]
+                        self.qhc_steps[self.slots-1] += self.qtable_hc[i][j]
+                        self.qspdt_steps[self.slots-1] += self.qtable_spdt[i][j]
 
             # check for new events and remove the expired ones from the environment
             # self.environment.update_events(cur_step)

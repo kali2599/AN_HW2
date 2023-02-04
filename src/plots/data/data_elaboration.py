@@ -21,7 +21,8 @@ from glob import glob
 import pandas as pd
 from pandas import DataFrame
 import pickle
-from src.simulation.simulator import Simulator
+from src.utilities.config import SLOTS
+
 
 
 def compute_data_avg_std(path: str):
@@ -87,11 +88,11 @@ def compute_data_avg_std(path: str):
     # dsnrn = [0, 0, 0, 0, 0, 0]
 
     hc = {}
-    hc[5], hc[10], hc[15], hc[20], hc[25], hc[30] = {}, {}, {}, {}, {}
+    hc[5], hc[10], hc[15], hc[20], hc[25], hc[30] = {}, {}, {}, {}, {}, {}
     spdt = {}
-    spdt[5], spdt[10], spdt[15], spdt[20], spdt[25], spdt[30] = {}, {}, {}, {}, {}
-    slots = Simulator.slots()
-    print(slots)
+    spdt[5], spdt[10], spdt[15], spdt[20], spdt[25], spdt[30] = {}, {}, {}, {}, {}, {}
+    slots = int(SLOTS)
+    #print(slots)
     for key in hc:
         for i in range(slots):
             hc[key][i] = 0
@@ -107,9 +108,10 @@ def compute_data_avg_std(path: str):
         n_drones = df["n_drones"][0]
         qt_hc = data["qhc_steps"]  # meanc_hc
         qt_spdt = data["qspdt_steps"]  # mean_spdt
+        print(qt_hc)
         for key in hc[n_drones]:
-            hc[n_drones][key] += qt_hc[n_drones][key]
-            spdt[n_drones][key] += qt_spdt[n_drones][key]
+            hc[n_drones][key] += qt_hc[str(key)]
+            spdt[n_drones][key] += qt_spdt[str(key)]
         count += 1
 
     for num_drones in hc:

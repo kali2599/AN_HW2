@@ -37,7 +37,7 @@ ALGORITHMS = {"QL": {"title": "Multi-objective Routing"},
               }
 
 X_LABEL = "Number of drones"
-STEPS = SIM_DURATION / 100
+STEPS = int(SIM_DURATION / 1000) + 1
 Y_LABEL_MEAN = "Mean values"
 Y_LABEL_DEV = "deviation"
 X_VALUES = np.array([5, 10, 15, 20, 25, 30])
