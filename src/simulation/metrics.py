@@ -193,11 +193,14 @@ class Metrics:
         out_results["mean_number_of_relays"] = np.nanmean(self.mean_numbers_of_possible_relays)
         out_results["packet_mean_delivery_time"] = self.packet_mean_delivery_time
         out_results["packet_delivery_ratio"] = self.number_of_packets_to_depot/self.all_data_packets_in_simulation
-        exploitation = self.simulator.exploitation
-        out_results["exploitation"] = {"q_values": exploitation[0],
-                                       "heuristic": exploitation[1],
-                                       "total": sum(exploitation)}
-        out_results["exploration"] = self.simulator.exploration
+        #exploitation = self.simulator.exploitation
+        #out_results["exploitation"] = {"q_values": exploitation[0],
+                                       #"heuristic": exploitation[1],
+                                       #"total": sum(exploitation)}
+        #out_results["exploration"] = self.simulator.exploration
+        out_results["number_of_steps"] = self.simulator.slots
+        out_results["qhc_steps"] = self.simulator.qhc_steps
+        out_results["qspdt_steps"] = self.simulator.qspdt_steps
         # --------------------------------------------------------------------------------------------------------------
         # out_results["all_control_packets_in_simulation"] = self.all_control_packets_in_simulation
         # out_results["all_data_packets_in_simulation"] = self.all_data_packets_in_simulation

@@ -97,6 +97,34 @@ def compute_data_avg_std(path: str):
         n_drones = df["n_drones"][0]
         ratio = float(pd.DataFrame({data.get("packet_delivery_ratio")})[0])
         dt = float(pd.DataFrame({data.get("packet_mean_delivery_time")})[0])
+        relay = data["mean_number_of_relays"]
+        steps = data["number_of_steps"]
+        qt_hc = data["qhc_steps"]
+        qt_spdt = data["qspdt_steps"]
+
+        #mean_hc_for_steps = {}
+        #mean_spdt_for_steps = {}
+
+        '''if ra[0] == "RoutingAlgorithm.QL":
+            for i in range(steps):
+                mean_hc_for_steps[i] = 0
+                mean_spdt_for_steps[i] = 0
+
+            for i in range(steps):
+                i1 = str(i)
+                for j in range(n_drones):
+                    j1 = str(j)
+                    for k in range(n_drones):
+                        k1 = str(k)
+                        mean_hc_for_steps[i] += qt_hc[i1][j1][k1]
+                        mean_spdt_for_steps[i] += qt_spdt[i1][j1][k1]
+
+            for i in range(steps):
+                mean_hc_for_steps[i] = mean_hc_for_steps[i]/n_drones
+                mean_spdt_for_steps[i] = mean_spdt_for_steps[i]/n_drones'''
+
+        #print(qt_hc["0"]["0"])
+        #print(qt_spdt["0"]["0"])
 
 
         #explt_q_values = data["exploitation"]["q_values"]
@@ -104,7 +132,12 @@ def compute_data_avg_std(path: str):
         #explt_total = data["exploitation"]["total"]
         #explr = data["exploration"]
 
-        relay = data["mean_number_of_relays"]
+        #tot_hc=0
+        #for i in range(n_drones):
+
+            #for j in range
+
+
 
         i = int((n_drones / 5) - 1)
         j = int(n_seed)
@@ -384,6 +417,12 @@ def compute_data_avg_std(path: str):
     print("Deviazione standard:")
     print(dsnrq)
     print('.....................................................................................................')
+    print("Media HC for steps")
+    print(qt_hc)
+    print('.....................................................................................................')
+    print("Media SPDT for steps")
+    print(qt_spdt)
+    print('.....................................................................................................')
 
     '''print("Tabella packet_delivery_ratio con NQL Routing:")
     print(mrn)
@@ -429,12 +468,14 @@ def compute_data_avg_std(path: str):
                    'mean_exploration': {'GEO': eg, 'RND': er, 'QL': eq, 'NQL': en}
                    }'''
     out_results = {
-        'mean_packet_delivery_ratio': {mrq},
-        'mean_standard_deviation_ratio': {dsrq},
-        'mean_packet_delivery_time': {mtq},
-        'mean_standard_deviation_packet_delivery_time': {dstq},
-        'mean_number_of_relays': {mnrq},
-        'mean_standard_deviation_relays': {dsnrq}
+        'mean_packet_delivery_ratio': mrq,
+        'mean_standard_deviation_ratio': dsrq,
+        'mean_packet_delivery_time': mtq,
+        'mean_standard_deviation_packet_delivery_time': dstq,
+        'mean_number_of_relays': mnrq,
+        'mean_standard_deviation_relays': dsnrq,
+        'mean_hc': qt_hc,
+        'mean_spdt': qt_spdt
     }
 
     with open("output.json", "w") as outfile:
