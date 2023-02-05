@@ -49,7 +49,7 @@ class QLearningRouting(BASE_routing):
             # remove the entry, the action has received the feedback
             del self.taken_actions[id_event]
 
-            # UPDATE TR
+            # UPDATE Transmission Rate of the drone, based on the outcome
             self.drone.number_packets += 1
             if outcome == 1:
                 self.drone.successful_deliveries += 1
@@ -58,9 +58,12 @@ class QLearningRouting(BASE_routing):
             # UPDATE Q-TABLES
             ah, at, y = 0.8, 0.8, 0.2
             next_state = action
+            """
+            We consider the hc and spdt value good where are low, bad otherwise. It means that the reward is lower as much 
+            as the choice of that action was good, is higher otherwise. Thus, for this reason when the drone has to choose 
+            the relay, it will consider those with the lowest hc and spdt (use min() instead of max() )
+            """
             if drone.identifier == state:
-                # print(state == self.drone.identifier)
-                # print(f"Drone: {self.drone.identifier}, Action: {action}")
                 self.simulator.number_of_packets += 1
                 r_hc = hops_count
                 r_spdt = 0 if outcome else 1
@@ -91,16 +94,10 @@ class QLearningRouting(BASE_routing):
         # UPDATE ALL LINK PARAMETERS
         for hello_pck, neigh in opt_neighbors:
             self.link_parameters[neigh] = self.update_link_param(hello_pck)
-            # if self.drone.identifier == 1:
-            # print(str(neigh.identifier) + " : " + str(hello_pck.optional_data))
-
-        #if self.simulator.cur_step > self.simulator.len_simulation - 1000 and self.drone.identifier == 0:
-            #print(f"{self.drone} : {self.link_parameters}")
 
         # FUZZY LOGIC
         candidates = []
         for hello, neigh in opt_neighbors:
-            # hc, spdt = None, None
             tr, es, fs = self.link_parameters[neigh][0], self.link_parameters[neigh][1], self.link_parameters[neigh][2]
             hc = min(self.simulator.qtable_hc[state], key=self.simulator.qtable_hc[state].get)
             spdt = min(self.simulator.qtable_spdt[state], key=self.simulator.qtable_spdt[state].get)
@@ -115,8 +112,8 @@ class QLearningRouting(BASE_routing):
                 relay = drone
 
         action = relay.identifier  # the state is defined above
-        packet.hops += 1
-        self.taken_actions[packet.event_ref.identifier] = (state, action, packet.hops, packet.time_step_creation)
+        packet.hops += 1  # store the number of hops that a packet does
+        self.taken_actions[packet.event_ref.identifier] = (state, action, packet.hops)
         return relay
 
     def update_link_param(self, hello_pck):
@@ -134,7 +131,7 @@ class QLearningRouting(BASE_routing):
         vj = hello_pck.speed  # velocity of neigh
         pos_neigh = hello_pck.cur_pos
         next_pos_neigh = hello_pck.next_target
-        J = self.simulator.depot_coordinates  # destination node, maybe next_pos_neigh?
+        J = self.simulator.depot_coordinates  # destination node
         teta_i = util.angle_between_points(self.drone.coords, J, pos_neigh)
         teta_j = util.angle_between_points(pos_neigh, J, next_pos_neigh)
         cos_jd = np.dot(J, pos_neigh) / ( np.linalg.norm(J) * np.linalg.norm(pos_neigh) )  # projection vector of node-neigh on the destination
@@ -176,28 +173,4 @@ class QLearningRouting(BASE_routing):
             crisp_output = 4
         return crisp_output
 
-    def select_best_neigh(self, opt_neighbours):  # select the fastest drone that could reach the depeot
-        relay = None
-        depeot_pos = self.simulator.depot_coordinates
-        time = 15000
-        speed_drone = self.drone.speed
-        for hello_packet, neigh in opt_neighbours:
-            next_pos_neigh = hello_packet.next_target
-            speed_neigh = hello_packet.speed
-            new_distance = util.euclidean_distance(depeot_pos, next_pos_neigh)
-            time_needed = new_distance / speed_neigh
-            if time_needed < time:
-                relay = neigh
-                time = time_needed
-        # maybe the drone itself can do the relay
-        if util.euclidean_distance(depeot_pos, self.drone.coords) / speed_drone < time:
-            relay = self.drone
-        return relay
 
-    def get_cell(self, position):
-        xpos = position[0]
-        ypos = position[1]
-        return util.TraversedCells.coord_to_cell(size_cell=self.simulator.prob_size_cell,
-                                                 width_area=self.simulator.env_width,
-                                                 x_pos=xpos,
-                                                 y_pos=ypos)[0]

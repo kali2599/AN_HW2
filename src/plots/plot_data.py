@@ -73,7 +73,7 @@ def plot(algorithms: list):
         elif metric == "mean_spdt":
             ax = graph_spdt
             ax.tick_params(axis='both', which='major', labelsize=config.TICKS_SIZE)
-            ax.set_title(label=config.PLOT_INFO[metric]["title"],fontsize=config.TITLE_SIZE)
+            ax.set_title(label=config.PLOT_INFO[metric]["title"], fontsize=config.TITLE_SIZE)
             ax.set_xlabel(xlabel=config.PLOT_INFO[metric]["x_label"], fontsize=config.LABEL_SIZE)
             ax.set_ylabel(ylabel=config.PLOT_INFO[metric]["y_label"], fontsize=config.LABEL_SIZE)
             ax.grid(linewidth=0.3, color="grey")
@@ -103,7 +103,7 @@ def plot(algorithms: list):
         elif metric == "mean_packet_delivery_time":
             ax = graph_delivery_time
             ax.tick_params(axis='both', which='major', labelsize=config.TICKS_SIZE)
-            ax.set_title(label="Delivery time", fontsize=config.TITLE_SIZE)
+            ax.set_title(label="Mean delivery time of packets", fontsize=config.TITLE_SIZE)
             # ax.set_title(label=config.ALGORITHMS[algorithm]["title"], fontsize=config.TITLE_SIZE)
             ax.set_xlabel(xlabel=config.PLOT_INFO[metric]["x_label"], fontsize=config.LABEL_SIZE)
             ax.set_ylabel(ylabel=config.PLOT_INFO[metric]["y_label"], fontsize=config.LABEL_SIZE)
