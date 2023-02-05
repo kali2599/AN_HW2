@@ -38,15 +38,15 @@ class BASE_routing(metaclass=abc.ABCMeta):
             self.no_transmission = True
             self.drone.accept_packets([packet])
 
-            packet.add_hop((src_drone.identifier, self.drone.identifier))
-
+            # MY_STUFF
             packet_id = packet.event_ref.identifier
             actions = src_drone.routing_algorithm.taken_actions
-            keys = list(actions.keys())
-            if packet_id in keys:
-                actions[packet_id].append((self.drone.identifier, packet.n_hops))
+            hop_delivery_delay = self.simulator.cur_step - packet.event_ref.current_time
+            packet.add_hop((src_drone.identifier, self.drone.identifier, hop_delivery_delay))
+            if packet_id in actions:
+                actions[packet_id].append((self.drone.identifier, packet.n_hops, hop_delivery_delay))
             else:
-                actions[packet_id] = [(self.drone.identifier, packet.n_hops)]
+                actions[packet_id] = [(self.drone.identifier, packet.n_hops, hop_delivery_delay)]
 
             # build ack for the reception
             ack_packet = ACKPacket(self.drone, src_drone, self.simulator, packet, current_ts)
@@ -188,7 +188,7 @@ class BASE_routing(metaclass=abc.ABCMeta):
     def unicast_message(self, packet, src_drone, dst_drone, curr_step):
         """ send a message to my neigh drones"""
         # Broadcast using Network dispatcher
-        print(self.simulator.cur_step)
+        # print(self.simulator.cur_step)
         self.simulator.network_dispatcher.send_packet_to_medium(packet, src_drone, dst_drone,
                                                                 curr_step + config.LIL_DELTA)
 

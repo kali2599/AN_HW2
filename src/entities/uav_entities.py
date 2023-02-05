@@ -206,27 +206,24 @@ class Depot(Entity):
     def transfer_notified_packets(self, current_drone, cur_step):
         """ function called when a drone wants to offload packets to the depot """
 
-        # print("---------", current_drone, "----------")
         packets_to_offload = current_drone.all_packets()
         self.__buffer += packets_to_offload
 
         for pck in packets_to_offload:
-            # print("\n####", pck.event_ref.identifier, "####")
 
-            # pck.add_hop((current_drone.identifier, "d"))
-            # print("added last hop")
+            # print("\n##### ", pck.event_ref.identifier, "#####")
+            # print("hops: ", pck.hops, " #", pck.n_hops)
 
             delivery_delay = cur_step - pck.event_ref.current_time
-            print(pck.event_ref.identifier, ": ", pck.hops, " #" + str(pck.n_hops) + " | time=" + str(delivery_delay) + "\n")
+
+            # print("delay: ", delivery_delay, "\n:\n")
 
             if self.simulator.routing_algorithm.name not in "GEO" "RND" "GEOS":
 
                 feedback = 1
-                # delivery_delay = cur_step - pck.event_ref.current_time
 
                 for drone in self.simulator.drones:
-                    # print(pck.hops[-1][1])
-                    # print("\n-----send feedback " + str(feedback) + " to Drone " + str(drone.identifier), "-----\n")
+
                     drone.routing_algorithm.feedback(current_drone,
                                                      pck.event_ref.identifier,
                                                      pck.hops,
@@ -238,8 +235,6 @@ class Depot(Entity):
             self.simulator.metrics.drones_packets_to_depot.add((pck, cur_step))
             self.simulator.metrics.drones_packets_to_depot_list.append((pck, cur_step))
             pck.time_delivery = cur_step
-
-        print("-----------------------------\n")
 
 
 # ------------------ Drone ----------------------

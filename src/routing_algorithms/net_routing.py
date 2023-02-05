@@ -21,7 +21,6 @@ class MediumDispatcher:
 
             self.metric_class.all_control_packets_in_simulation += 1
 
-        print("?to_send_ts: ", to_send_ts)
         self.packets.append((packet, src_drone, dst_drone, to_send_ts))
 
     def run_medium(self, current_ts):
