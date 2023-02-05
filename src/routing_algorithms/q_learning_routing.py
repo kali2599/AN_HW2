@@ -12,21 +12,9 @@ class QLearningRouting(BASE_routing):
         BASE_routing.__init__(self, drone=drone, simulator=simulator)
         self.taken_actions = dict()  # id event : [(action, hop_number)]
         self.link_parameters = {}  # drone : (TR, ES, FS)
-        self.qtable_hc = simulator.qtable_hc
-        self.qtable_spdt = simulator.qtable_spdt
 
-        zero_dict = dict()
-        for i in range(self.simulator.n_drones):
-            zero_dict[i] = None
-        # zero_dict['d'] = None
-        qtable = dict()
-        for i in range(self.simulator.n_drones):
-            qtable[i] = zero_dict.copy()
-        self.qtable_hc = qtable.copy()
-        self.qtable_spdt = qtable.copy()
-
-        print(self.qtable_hc)
-        print(self.qtable_spdt)
+        self.qtable_hc = {drone.identifier: dict()}
+        self.qtable_spdt = {drone.identifier: dict()}
 
         self.alpha_h = 0.5
         self.alpha_t = 0.5
@@ -62,7 +50,7 @@ class QLearningRouting(BASE_routing):
 
                 self.drone.successful_deliveries += 1
 
-                #TMP STUFF
+                # TMP STUFF
                 if n_hops > self.simulator.max_jumps:
                     self.simulator.max_jumps = n_hops
 
@@ -97,73 +85,94 @@ class QLearningRouting(BASE_routing):
     def update_qtables(self, my_id, action_id, next_action_id, hc_reward, spdt_reward):
         qhc = self.qtable_hc
         qspdt = self.qtable_spdt
-        # print("pre-update-> ", qspdt)
-        hc_action_next = qhc[action_id][next_action_id]
-        hc_state_action = qhc[my_id][action_id]
-        spdt_state_action = qspdt[my_id][action_id]
-        spdt_action_next = qspdt[action_id][next_action_id]
 
-        # QHC-UPDATE
-        if hc_action_next is None:
-            qhc[action_id][next_action_id] = hc_action_next = self.alpha_h * hc_reward
-        else:
-            qhc[action_id][next_action_id] = (1 - self.alpha_h) * hc_action_next + self.alpha_h * hc_reward
-        if hc_state_action is None:
-            qhc[my_id][action_id] = hc_action_next
-        else:
-            qhc[my_id][action_id] = (1 - self.alpha_h) * hc_state_action + \
-                                    self.alpha_h * (self.gamma * min(
-                filter(lambda x: x is not None, qhc[action_id].values())))
+        if action_id not in qhc:
+            qhc[action_id] = {next_action_id: self.alpha_h * hc_reward}
+            qspdt[action_id] = {next_action_id: self.alpha_t * spdt_reward}
+            if action_id not in qhc[my_id]:
+                qhc[my_id][action_id] = self.alpha_h * hc_reward
+                qspdt[my_id][action_id] = self.alpha_t * spdt_reward
+            else:
+                qhc[my_id][action_id] = (1 - self.alpha_h) * qhc[my_id][action_id] + self.alpha_h * hc_reward
+                qspdt[my_id][action_id] = (1 - self.alpha_h) * qspdt[my_id][action_id] + self.alpha_t * spdt_reward
 
-        # SPDT-UPDATE
-        if spdt_action_next is None:
-            qspdt[action_id][next_action_id] = spdt_action_next = self.alpha_t * (spdt_reward + self.hop_delay)
+
+        elif next_action_id not in qhc[action_id]:
+            # QHC
+            qhc[action_id][next_action_id] = self.alpha_h * hc_reward
+            qhc[my_id][action_id] = (1 - self.alpha_h) * qhc[my_id][action_id] + \
+                                    self.alpha_h * (self.gamma * min(qhc[action_id].values()))
+            # Q-SPDT
+            qspdt[action_id][next_action_id] = self.alpha_t * (spdt_reward + self.hop_delay)
+            qspdt[my_id][action_id] = (1 - self.alpha_t) * qspdt[my_id][action_id] + \
+                                      self.alpha_t * (self.gamma * min(qspdt[action_id].values()) + self.hop_delay)
+
         else:
-            qspdt[action_id][next_action_id] = (1 - self.alpha_t) * spdt_action_next + \
+            # QHC
+            qhc[action_id][next_action_id] = (1 - self.alpha_h) * qhc[action_id][next_action_id] + \
+                                             self.alpha_h * hc_reward
+            qhc[my_id][action_id] = (1 - self.alpha_h) * qhc[my_id][action_id] + \
+                                    self.alpha_h * (self.gamma * min(qhc[action_id].values()))
+            # QSPDT
+            qspdt[action_id][next_action_id] = (1 - self.alpha_t) * qspdt[action_id][next_action_id] + \
                                                self.alpha_t * (spdt_reward + self.hop_delay)
-        if spdt_state_action is not None:
-            qspdt[my_id][action_id] = (1 - self.alpha_t) * spdt_state_action + \
-                                    self.alpha_t * (self.gamma * min(
-                filter(lambda x: x is not None, qspdt[action_id].values())) + self.hop_delay)
-        else:
-            qspdt[my_id][action_id] = self.alpha_t * spdt_reward
-
-        # print("post-update-> ", qspdt)
+            qspdt[my_id][action_id] = (1 - self.alpha_t) * qspdt[my_id][action_id] + \
+                                      self.alpha_t * (self.gamma * min(qspdt[action_id].values()) + self.hop_delay)
+        # print("pre-update-> ", qspdt)
+        # hc_action_next = qhc[action_id][next_action_id]
+        # hc_state_action = qhc[my_id][action_id]
+        # spdt_state_action = qspdt[my_id][action_id]
+        # spdt_action_next = qspdt[action_id][next_action_id]
+        #
+        # # QHC-UPDATE
+        # if hc_action_next is None:
+        #     qhc[action_id][next_action_id] = hc_action_next = self.alpha_h * hc_reward
+        # else:
+        #     qhc[action_id][next_action_id] = (1 - self.alpha_h) * hc_action_next + self.alpha_h * hc_reward
+        # if hc_state_action is None:
+        #     qhc[my_id][action_id] = hc_action_next
+        # else:
+        #     qhc[my_id][action_id] = (1 - self.alpha_h) * hc_state_action + \
+        #                             self.alpha_h * (self.gamma * min(
+        #         filter(lambda x: x is not None, qhc[action_id].values())))
+        #
+        # # SPDT-UPDATE
+        # if spdt_action_next is None:
+        #     qspdt[action_id][next_action_id] = spdt_action_next = self.alpha_t * (spdt_reward + self.hop_delay)
+        # else:
+        #     qspdt[action_id][next_action_id] = (1 - self.alpha_t) * spdt_action_next + \
+        #                                        self.alpha_t * (spdt_reward + self.hop_delay)
+        # if spdt_state_action is not None:
+        #     qspdt[my_id][action_id] = (1 - self.alpha_t) * spdt_state_action + \
+        #                             self.alpha_t * (self.gamma * min(
+        #         filter(lambda x: x is not None, qspdt[action_id].values())) + self.hop_delay)
+        # else:
+        #     qspdt[my_id][action_id] = self.alpha_t * spdt_reward
+        #
+        # # print("post-update-> ", qspdt)
         return
 
     def update_qtables_last_hop(self, my_id, action_id, hc_reward, spdt_reward):
         qhc = self.qtable_hc
         qspdt = self.qtable_spdt
         # print("pre-update-> ", qspdt)
-        hc_state_action = qhc[my_id][action_id]
-        spdt_state_action = qspdt[my_id][action_id]
-
-        # QHC-UPDATE
-        if hc_state_action is not None:
-            qhc[my_id][action_id] = (1 - self.alpha_h) * hc_state_action + \
-                                    self.alpha_h * (self.gamma * min(
-                filter(lambda x: x is not None, qhc[action_id].values())))
-        else:
+        if action_id not in qhc[my_id]:
             qhc[my_id][action_id] = self.alpha_h * hc_reward
-
-        # SPDT-UPDATE
-        if spdt_state_action is not None:
-            qspdt[my_id][action_id] = (1 - self.alpha_t) * spdt_state_action + \
-                                    self.alpha_t * (self.gamma * min(
-                filter(lambda x: x is not None, qspdt[action_id].values())) + self.hop_delay)
+            qspdt[my_id][action_id] = self.alpha_t * spdt_reward
         else:
-            qspdt[my_id][action_id] = self.alpha_t * (spdt_reward + self.hop_delay)
+            qhc[my_id][action_id] = (1 - self.alpha_h) * qhc[my_id][action_id] + self.alpha_h * hc_reward
+            qspdt[my_id][action_id] = (1 - self.alpha_h) * qspdt[my_id][action_id] + self.alpha_t * spdt_reward
 
         # print("post-update-> ", qspdt)
         return
 
     @staticmethod
     def compute_reward_hc(n_hops, hop):
-        return n_hops - hop - 1
+        return n_hops - hop - 5
 
     @staticmethod
     def compute_reward_spdt(total_delay, hop_delay):
-        return ((total_delay - hop_delay)/config.EVENTS_DURATION) * config.TS_DURATION
+        return ((total_delay - hop_delay) * config.TS_DURATION) - (20 * config.TS_DURATION)
 
     def relay_selection(self, opt_neighbors: list, packet):
         """
@@ -182,19 +191,17 @@ class QLearningRouting(BASE_routing):
         # UPDATE ALL LINK PARAMETERS
         for hello_pck, neigh in opt_neighbors:
             self.link_parameters[neigh] = self.update_link_param(hello_pck)
-            # if self.drone.identifier == 1:
-            # print(str(neigh.identifier) + " : " + str(hello_pck.optional_data))
-
-        #if self.simulator.cur_step > self.simulator.len_simulation - 1000 and self.drone.identifier == 0:
-            #print(f"{self.drone} : {self.link_parameters}")
 
         # FUZZY LOGIC
         candidates = []
         for hello, neigh in opt_neighbors:
             action = neigh.identifier
             tr, es, fs = self.link_parameters[neigh][0], self.link_parameters[neigh][1], self.link_parameters[neigh][2]
-            hc = self.qtable_hc[state][action]
-            spdt = self.qtable_spdt[state][action]
+            hc = None
+            spdt = None
+            if action in self.qtable_hc[state]:
+                hc = self.qtable_hc[state][action]
+                spdt = self.qtable_spdt[state][action]
             candidates.append((neigh, self.fuzzy_logic(tr, es, fs, hc, spdt)))
 
         # RELAY SELECTION
@@ -208,6 +215,7 @@ class QLearningRouting(BASE_routing):
         return relay
 
     def update_link_param(self, hello_pck):
+
         tr = hello_pck.optional_data[1]
 
         b1, b2 = 0.5, 0.5
@@ -226,7 +234,7 @@ class QLearningRouting(BASE_routing):
         teta_i = util.angle_between_points(self.drone.coords, J, pos_neigh)
         teta_j = util.angle_between_points(pos_neigh, J, next_pos_neigh)
         cos_jd = np.dot(J, pos_neigh) / (
-                    np.linalg.norm(J) * np.linalg.norm(pos_neigh))  # projection vector of node-neigh on the destination
+                np.linalg.norm(J) * np.linalg.norm(pos_neigh))  # projection vector of node-neigh on the destination
         pdj = vj * cos_jd
         fs = math.cos(teta_i - teta_j) * pdj
 
@@ -247,8 +255,10 @@ class QLearningRouting(BASE_routing):
         fs_fuzz = "b" if fs < 5 else "g"
         if hc is not None:
             hc_fuzz = "sm" if hc < 10 else "lg"
+            # print(hc_fuzz)
         if spdt is not None:
             spdt_fuzz = "sh" if spdt < 0.2 else "ln"
+            print(spdt_fuzz)
         return tr_fuzz, es_fuzz, fs_fuzz, hc_fuzz, spdt_fuzz
 
     def defuzzification(self, route):

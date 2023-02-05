@@ -44,18 +44,6 @@ class Simulator:
                  communication_error_type=config.CHANNEL_ERROR_TYPE,
                  prob_size_cell_r=config.CELL_PROB_SIZE_R,
                  simulation_name=""):
-        print("\n",
-              "############################################################################\n",
-              "############################################################################\n",
-              "############################################################################\n",
-              "############################################################################\n",
-              "############################################################################\n",
-              "############################################################################\n",
-              "############################################################################\n",
-              "############################################################################\n",
-              "############################################################################\n",
-              "############################################################################\n",
-              "############################################################################\n")
         self.cur_step = None
         self.drone_com_range = drone_com_range
         self.drone_sen_range = drone_sen_range
@@ -95,10 +83,6 @@ class Simulator:
 
         # setup network
         self.__setup_net_dispatcher()
-
-        # Setup the simulation and Qtables
-        self.qtable_hc = dict()
-        self.qtable_spdt = dict()
 
         self.__set_simulation()
         self.__set_metrics()
@@ -144,18 +128,6 @@ class Simulator:
         self.depot = Depot(self.depot_coordinates, self.depot_com_range, self)
 
         self.drones = []
-
-        # zero_dict = dict()
-        # for i in range(self.n_drones):
-        #     zero_dict[i] = 0
-        # zero_dict['d'] = 0
-        # qtable = dict()
-        # for i in range(self.n_drones):
-        #     qtable[i] = zero_dict.copy()
-        # self.qtable_hc = qtable.copy()
-        # self.qtable_spdt = qtable.copy()
-
-        self.reward_limit = 150
 
         # print(self.qtable_hc)
         # print(self.qtable_spdt)
