@@ -67,6 +67,7 @@ class QLearningRoutingChain(BASE_routing):
                     hc_reward = self.compute_reward_hc(n_hops, hop)
 
                     if hop == n_hops:
+                        self.simulator.number_of_packets += 1
                         hop_delay = action[2]
                         spdt_reward = self.compute_reward_spdt(delay, hop_delay)
                         self.update_qtables_last_hop(my_id, relay_id, hc_reward, spdt_reward)

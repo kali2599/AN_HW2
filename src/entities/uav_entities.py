@@ -116,7 +116,7 @@ class Packet(Entity):
 
         # QLC CHANGES
         self.all_hops = []
-        self.n_hops = 0
+        self.n_hops = -1
 
     def distance_from_depot(self):
         return utilities.euclidean_distance(self.simulator.depot_coordinates, self.coords)
