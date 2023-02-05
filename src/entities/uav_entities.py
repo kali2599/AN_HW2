@@ -114,6 +114,10 @@ class Packet(Entity):
         # MY CHANGES
         self.hops = 0
 
+        # QLC CHANGES
+        self.all_hops = []
+        self.n_hops = 0
+
     def distance_from_depot(self):
         return utilities.euclidean_distance(self.simulator.depot_coordinates, self.coords)
 
@@ -139,6 +143,10 @@ class Packet(Entity):
 
         # self.hops.add(drone.identifier)
         self.increase_TTL_hops()
+
+    def qlc_add_hop(self, triple):
+        self.all_hops.append(triple)
+        self.n_hops += 1
 
     def increase_TTL_hops(self):
         self.__TTL += 1
@@ -210,9 +218,19 @@ class Depot(Entity):
         for pck in packets_to_offload:
 
             if self.simulator.routing_algorithm.name not in "GEO" "RND" "GEOS":
-
-                feedback = 1
                 delivery_delay = cur_step - pck.event_ref.current_time
+
+            if self.simulator.routing_algorithm.name == "QLC":
+                feedback = 1
+
+                for drone in self.simulator.drones:
+                    drone.routing_algorithm.feedback(pck.event_ref.identifier,
+                                                     pck.all_hops,
+                                                     pck.n_hops,
+                                                     delivery_delay,
+                                                     feedback)
+            else:
+                feedback = 1
 
                 for drone in self.simulator.drones:
                     drone.routing_algorithm.feedback(current_drone,
@@ -287,14 +305,25 @@ class Drone(Entity):
 
                 if self.simulator.routing_algorithm.name not in "GEO" "RND" "GEOS":
 
-                    feedback = -1
-                    current_drone = self
+                    if self.simulator.routing_algorithm.name == "QLC":
+                        feedback = -1
 
-                    for drone in self.simulator.drones:
-                        drone.routing_algorithm.feedback(current_drone,
-                                                         pck.event_ref.identifier,
-                                                         self.simulator.event_duration,
-                                                         feedback)
+                        for drone in self.simulator.drones:
+                            drone.routing_algorithm.feedback(pck.event_ref.identifier,
+                                                             pck.all_hops,
+                                                             pck.n_hops,
+                                                             self.simulator.event_duration,
+                                                             feedback)
+                    else:
+                        feedback = -1
+                        current_drone = self
+
+                        for drone in self.simulator.drones:
+                            drone.routing_algorithm.feedback(current_drone,
+                                                             pck.event_ref.identifier,
+                                                             self.simulator.event_duration,
+                                                             feedback)
+
         self.__buffer = tmp_buffer
 
         if self.buffer_length() == 0:
