@@ -108,7 +108,6 @@ def compute_data_avg_std(path: str):
         n_drones = df["n_drones"][0]
         qt_hc = data["qhc_steps"]  # meanc_hc
         qt_spdt = data["qspdt_steps"]  # mean_spdt
-        print(qt_hc)
         for key in hc[n_drones]:
             hc[n_drones][key] += qt_hc[str(key)]
             spdt[n_drones][key] += qt_spdt[str(key)]

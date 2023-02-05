@@ -13,9 +13,9 @@ do
     for alg in "QL";
     do
         echo "run: ${alg} - ndrones ${nd} "
-        python3.8 -m src.experiments.experiment_ndrones -nd ${nd} -i_s 0 -e_s 2 -alg ${alg} &
-        #python -m src.experiments.experiment_ndrones -nd ${nd} -i_s 10 -e_s 20 -alg ${alg} &
-        #python -m src.experiments.experiment_ndrones -nd ${nd} -i_s 20 -e_s 30 -alg ${alg} &
+        python3.8 -m src.experiments.experiment_ndrones -nd ${nd} -i_s 0 -e_s 10 -alg ${alg} &
+        python3.8 -m src.experiments.experiment_ndrones -nd ${nd} -i_s 10 -e_s 20 -alg ${alg} &
+        python3.8 -m src.experiments.experiment_ndrones -nd ${nd} -i_s 20 -e_s 30 -alg ${alg} &
     done;
 done;
 wait

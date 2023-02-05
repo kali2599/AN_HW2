@@ -43,58 +43,83 @@ DATA = json.load(open("data/output.json", "r"))
 def plot(algorithms: list):
     metrics = config.METRICS_OF_INTEREST
     # n_plots = len(metrics)
-    n_columns = len(algorithms)
+    n_columns = 1
     height = config.HEIGHT
     width = height * n_columns
+    name = -1
+    fig, graph_hc = plt.subplots(nrows=1, ncols=n_columns, figsize=(width, height))
+    fig, graph_spdt = plt.subplots(nrows=1, ncols=n_columns, figsize=(width, height))
+    fig, graph_ratio = plt.subplots(nrows=1, ncols=n_columns, figsize=(width, height))
+    fig, graph_delivery_time = plt.subplots(nrows=1, ncols=n_columns, figsize=(width, height))
     for metric in metrics:
-        fig, axs = plt.subplots(nrows=1, ncols=n_columns, figsize=(width, height))
+        name += 1
         # fig.suptitle(config.PLOT_INFO[metric]["title"], fontsize=config.SUP_TITLE_SIZE)
         # fig.suptitle(fontsize=config.SUP_TITLE_SIZE)
         if metric == "mean_hc":
+            ax = graph_hc
+            ax.tick_params(axis='both', which='major', labelsize=config.TICKS_SIZE)
+            ax.set_title(label=config.PLOT_INFO[metric]["title"], fontsize=config.TITLE_SIZE)
+            ax.set_xlabel(xlabel=config.PLOT_INFO[metric]["x_label"], fontsize=config.LABEL_SIZE)
+            ax.set_ylabel(ylabel=config.PLOT_INFO[metric]["y_label"], fontsize=config.LABEL_SIZE)
+            ax.grid(linewidth=0.3, color="grey")
+            x_values = np.arange(config.STEPS)
             for key in DATA[metric]:
                 y_values = []
                 for step in DATA[metric][key]:
                     y_values.append(DATA[metric][key][step])
-                ax = axs
-                ax.tick_params(axis='both', which='major', labelsize=config.TICKS_SIZE)
-                ax.set_title(label=config.PLOT_INFO[metric]["title"] + " for " + str(key) + " drones",
-                             fontsize=config.TITLE_SIZE)
-                ax.set_xlabel(xlabel=config.PLOT_INFO[metric]["x_label"], fontsize=config.LABEL_SIZE)
-                ax.set_ylabel(ylabel=config.PLOT_INFO[metric]["y_label"], fontsize=config.LABEL_SIZE)
-                ax.grid(linewidth=0.3, color="grey")
-                x_values = list(range(config.STEPS))
-                print(x_values)
-                ax.plot(x_values, y_values, marker='.', ms=10)
+                ax.plot(x_values, y_values, label=str(key) + " drones", marker='.', ms=20)
+                ax.legend(fontsize=20)
 
         elif metric == "mean_spdt":
+            ax = graph_spdt
+            ax.tick_params(axis='both', which='major', labelsize=config.TICKS_SIZE)
+            ax.set_title(label=config.PLOT_INFO[metric]["title"],fontsize=config.TITLE_SIZE)
+            ax.set_xlabel(xlabel=config.PLOT_INFO[metric]["x_label"], fontsize=config.LABEL_SIZE)
+            ax.set_ylabel(ylabel=config.PLOT_INFO[metric]["y_label"], fontsize=config.LABEL_SIZE)
+            ax.grid(linewidth=0.3, color="grey")
+            x_values = np.arange(config.STEPS)
             for key in DATA[metric]:
                 y_values = []
                 for step in DATA[metric][key]:
                     y_values.append(DATA[metric][key][step])
-                ax = axs
-                ax.tick_params(axis='both', which='major', labelsize=config.TICKS_SIZE)
-                ax.set_title(label=config.PLOT_INFO[metric]["title"] + " for " + str(key) + " drones",
-                             fontsize=config.TITLE_SIZE)
-                ax.set_xlabel(xlabel=config.PLOT_INFO[metric]["x_label"], fontsize=config.LABEL_SIZE)
-                ax.set_ylabel(ylabel=config.PLOT_INFO[metric]["y_label"], fontsize=config.LABEL_SIZE)
-                ax.grid(linewidth=0.3, color="grey")
-                x_values = list(range(config.STEPS))
-                print(x_values)
-                ax.plot(x_values, y_values, marker='.', ms=10)
+                ax.plot(x_values, y_values, marker='.', ms=20, label=str(key) + " drones")
+                ax.legend(fontsize=20)
+        elif metric == "mean_packet_delivery_ratio":
+            ax = graph_ratio
+            ax.tick_params(axis='both', which='major', labelsize=config.TICKS_SIZE)
+            ax.set_title(label="Delivery ratio packets", fontsize=config.TITLE_SIZE)
+            # ax.set_title(label=config.ALGORITHMS[algorithm]["title"], fontsize=config.TITLE_SIZE)
+            ax.set_xlabel(xlabel=config.PLOT_INFO[metric]["x_label"], fontsize=config.LABEL_SIZE)
+            ax.set_ylabel(ylabel=config.PLOT_INFO[metric]["y_label"], fontsize=config.LABEL_SIZE)
+            ax.grid(linewidth=0.3, color="grey")
+            ax.plot(config.X_VALUES, DATA[metric], marker='.', ms=20, label="Mean")
+            ax.legend(fontsize=20)
+
+        elif metric == "mean_standard_deviation_ratio":
+            ax = graph_ratio
+            ax.plot(config.X_VALUES, DATA[metric], marker='.', ms=20, label="Deviation")
+            ax.legend(fontsize=20)
+
+        elif metric == "mean_packet_delivery_time":
+            ax = graph_delivery_time
+            ax.tick_params(axis='both', which='major', labelsize=config.TICKS_SIZE)
+            ax.set_title(label="Delivery time", fontsize=config.TITLE_SIZE)
+            # ax.set_title(label=config.ALGORITHMS[algorithm]["title"], fontsize=config.TITLE_SIZE)
+            ax.set_xlabel(xlabel=config.PLOT_INFO[metric]["x_label"], fontsize=config.LABEL_SIZE)
+            ax.set_ylabel(ylabel=config.PLOT_INFO[metric]["y_label"], fontsize=config.LABEL_SIZE)
+            ax.grid(linewidth=0.3, color="grey")
+            ax.plot(config.X_VALUES, DATA[metric], marker='.', ms=20, label="Mean")
+            ax.legend(fontsize=20)
         else:
-            for i in range(n_columns):
-                algorithm = algorithms[i]
-                ax = axs
-                ax.plot(config.X_VALUES, DATA[metric], marker='.', ms=10)
-                ax.tick_params(axis='both', which='major', labelsize=config.TICKS_SIZE)
-                ax.set_title(label=config.PLOT_INFO[metric]["title"], fontsize=config.TITLE_SIZE)
-                # ax.set_title(label=config.ALGORITHMS[algorithm]["title"], fontsize=config.TITLE_SIZE)
-                ax.set_xlabel(xlabel=config.PLOT_INFO[metric]["x_label"], fontsize=config.LABEL_SIZE)
-                ax.set_ylabel(ylabel=config.PLOT_INFO[metric]["y_label"], fontsize=config.LABEL_SIZE)
-                ax.grid(linewidth=0.3, color="grey")
+            ax = graph_delivery_time
+            ax.plot(config.X_VALUES, DATA[metric], marker='.', ms=20, label="Deviation")
+            ax.legend(fontsize=20)
+
+
+        #plt.savefig("figures/" + str(name), dpi=400, format="png")
     plt.tight_layout()
     plt.show()
-    # plt.savefig("figures/" + name + ".png", dpi='figure')
+
     # plt.clf()
 
     # """

@@ -102,6 +102,7 @@ class Simulator:
         self.exploration = 0
 
         # CHANGES HW2
+        self.number_of_packets = 0
         self.qtable_hc = {}
         self.qtable_spdt = {}
         for i in range(n_drones):
@@ -296,9 +297,10 @@ class Simulator:
         for key in self.qtable_spdt:
             print(self.qtable_spdt[key])
         """
+        #k = self.metrics.return_number_packets()
         for k in range(self.slots):
             self.qhc_steps[k] = self.qhc_steps[k] / self.n_drones ** 2
-            self.qspdt_steps[k] = self.qspdt_steps[k] / self.n_drones ** 2
+            self.qspdt_steps[k] = (self.qspdt_steps[k] / self.n_drones ** 2) / self.number_of_packets
 
     def print_metrics(self, plot_id="final"):
         """ add signature """

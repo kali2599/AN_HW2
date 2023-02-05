@@ -41,7 +41,7 @@ STEPS = int(SIM_DURATION / 1000) + 1
 Y_LABEL_MEAN = "Mean values"
 Y_LABEL_DEV = "deviation"
 X_VALUES = np.array([5, 10, 15, 20, 25, 30])
-HEIGHT = 8
+HEIGHT = 16
 
 PLOT_INFO = {
     'mean_packet_delivery_ratio': {
@@ -67,13 +67,13 @@ PLOT_INFO = {
     'mean_hc': {
         "title": "Mean number of hops during the simulation",
         "y_label": Y_LABEL_MEAN + " (number of hops)",
-        "x_label": "Simulation Lifetime"
+        "x_label": "Simulation Lifetime (s)"
 
     },
     "mean_spdt": {
         "title": "Mean Successfully Delivered Packets during the simulation",
         "y_label": Y_LABEL_MEAN + " (ms)",
-        "x_label": "Simulation Lifetime"
+        "x_label": "Simulation Lifetime (s)"
 
     }
 

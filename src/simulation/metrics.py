@@ -1,5 +1,4 @@
 
-
 import numpy as np
 import pickle
 import pandas as pd
@@ -73,7 +72,8 @@ class Metrics:
         not_delivered_events = len(self.events) - len(all_delivered_events) 
         assert not_delivered_events >= 0
          
-        event_delivery_times.extend([undelivered_penalty * self.simulator.event_duration] * not_delivered_events)  # add penalities to not delivered or not found packets
+        event_delivery_times.extend(
+                                        [undelivered_penalty * self.simulator.event_duration] * not_delivered_events)  # add penalities to not delivered or not found packets
 
         return np.nanmean(event_delivery_times)       
 
@@ -123,7 +123,8 @@ class Metrics:
         self.event_delivery_times = event_delivery_times
         self.packet_mean_delivery_time = np.mean(packet_delivery_times) * self.simulator.time_step_duration
         self.event_mean_delivery_time = np.mean(event_delivery_times) * self.simulator.time_step_duration
-
+    def return_number_packets(self):
+        return self.all_data_packets_in_simulation
     def print_overall_stats(self):
         """
         print the overall stats of the alg execution
@@ -144,7 +145,7 @@ class Metrics:
         print("Data packets generated during simulation: ", self.all_data_packets_in_simulation)
         print("Number of packets to depot: ", self.number_of_packets_to_depot)
         print("Packet mean delivery time (seconds): ", self.packet_mean_delivery_time)
-        print("Packet delivery ratio: ", self.number_of_packets_to_depot/self.all_data_packets_in_simulation)
+        print("Packet delivery ratio: ", self.number_of_packets_to_depot /self.all_data_packets_in_simulation)
 
     def info_mission(self):
         """
@@ -192,12 +193,12 @@ class Metrics:
         # --------------------------------------------------------------------------------------------------------------
         out_results["mean_number_of_relays"] = np.nanmean(self.mean_numbers_of_possible_relays)
         out_results["packet_mean_delivery_time"] = self.packet_mean_delivery_time
-        out_results["packet_delivery_ratio"] = self.number_of_packets_to_depot/self.all_data_packets_in_simulation
-        #exploitation = self.simulator.exploitation
-        #out_results["exploitation"] = {"q_values": exploitation[0],
-                                       #"heuristic": exploitation[1],
-                                       #"total": sum(exploitation)}
-        #out_results["exploration"] = self.simulator.exploration
+        out_results["packet_delivery_ratio"] = self.number_of_packets_to_depot /self.all_data_packets_in_simulation
+        # exploitation = self.simulator.exploitation
+        # out_results["exploitation"] = {"q_values": exploitation[0],
+        # "heuristic": exploitation[1],
+        # "total": sum(exploitation)}
+        # out_results["exploration"] = self.simulator.exploration
         out_results["number_of_steps"] = self.simulator.slots
         out_results["qhc_steps"] = self.simulator.qhc_steps
         out_results["qspdt_steps"] = self.simulator.qspdt_steps
