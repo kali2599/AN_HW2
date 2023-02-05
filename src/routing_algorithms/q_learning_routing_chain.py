@@ -6,27 +6,28 @@ import src.routing_algorithms.tables as tables
 from src.utilities import config as config
 
 
-class QLearningRouting(BASE_routing):
+class QLearningRoutingChain(BASE_routing):
 
     def __init__(self, drone, simulator):
         BASE_routing.__init__(self, drone=drone, simulator=simulator)
-        self.taken_actions = dict()  # id event : [(action, hop_number)]
+        self.chain_of_actions = dict()  # id event : [(action, hop_number)]
         self.link_parameters = {}  # drone : (TR, ES, FS)
 
         self.qtable_hc = {drone.identifier: dict()}
         self.qtable_spdt = {drone.identifier: dict()}
+        print("QLC hola")
 
         self.alpha_h = 0.5
         self.alpha_t = 0.5
         self.gamma = 0.7
         self.hop_delay = 0.01
 
-    def feedback(self, drone, id_event, hops, n_hops, delay, outcome):
+    def feedback(self, id_event, hops, n_hops, delay, outcome):
         """
         Feedback returned when the packet arrives at the depot or
         Expire. This function have to be implemented in RL-based protocols ONLY
-        @param drone: The drone that holds the packet
         @hops: all hops of the drone
+        @hops: len(hops)
         @param id_event: The Event id
         @param delay: packet delay
         @param outcome: -1 or 1 (read below)
@@ -40,7 +41,7 @@ class QLearningRouting(BASE_routing):
         # Be aware, due to network errors we can give the same event to multiple drones and receive multiple
         # feedback for the same packet!!
 
-        if id_event in self.taken_actions:
+        if id_event in self.chain_of_actions:
             # # BE AWARE, IMPLEMENT YOUR CODE WITHIN THIS IF CONDITION OTHERWISE IT WON'T WORK!
 
             # UPDATE TR
@@ -58,7 +59,7 @@ class QLearningRouting(BASE_routing):
 
                 # print("drone ", my_id, "'s actions: ", self.taken_actions[id_event])
 
-                my_actions = reversed(self.taken_actions[id_event])
+                my_actions = reversed(self.chain_of_actions[id_event])
 
                 for action in my_actions:
                     relay_id = action[0]
@@ -258,7 +259,7 @@ class QLearningRouting(BASE_routing):
             # print(hc_fuzz)
         if spdt is not None:
             spdt_fuzz = "sh" if spdt < 0.2 else "ln"
-            # print(spdt_fuzz)
+            #print(spdt_fuzz)
         return tr_fuzz, es_fuzz, fs_fuzz, hc_fuzz, spdt_fuzz
 
     def defuzzification(self, route):

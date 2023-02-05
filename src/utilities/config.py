@@ -1,5 +1,6 @@
 from src.routing_algorithms.georouting import GeoRouting
 from src.routing_algorithms.q_learning_routing import QLearningRouting
+from src.routing_algorithms.q_learning_routing_chain import QLearningRoutingChain
 from src.routing_algorithms.second_solution import NEW_QLearningRouting
 from src.routing_algorithms.random_routing import RandomRouting
 from enum import Enum
@@ -85,7 +86,7 @@ class RoutingAlgorithm(Enum):
     GEO = GeoRouting
     RND = RandomRouting
     QL = QLearningRouting
-    NQL = NEW_QLearningRouting
+    QLC = QLearningRoutingChain
     @staticmethod
     def keylist():
         return list(map(lambda c: c.name, RoutingAlgorithm))
