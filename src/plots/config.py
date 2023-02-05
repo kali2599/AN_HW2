@@ -71,7 +71,7 @@ PLOT_INFO = {
 
     },
     "mean_spdt": {
-        "title": "Mean Successfully Delivered Packets during the simulation",
+        "title": "Mean Successfully Delivered Packets time in a route",
         "y_label": Y_LABEL_MEAN + " (ms)",
         "x_label": "Simulation Lifetime (s)"
 
