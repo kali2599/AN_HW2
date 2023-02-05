@@ -37,6 +37,18 @@ class BASE_routing(metaclass=abc.ABCMeta):
         elif isinstance(packet, DataPacket):
             self.no_transmission = True
             self.drone.accept_packets([packet])
+
+            # QLC CHANGES
+            if self.drone.simulator.routing_algorithm.name == "QLC":
+                packet_id = packet.event_ref.identifier
+                actions = src_drone.routing_algorithm.chain_of_actions
+                hop_delivery_delay = self.simulator.cur_step - packet.event_ref.current_time
+                packet.qlc_add_hop((src_drone.identifier, self.drone.identifier, hop_delivery_delay))
+                if packet_id in actions:
+                    actions[packet_id].append((self.drone.identifier, packet.n_hops, hop_delivery_delay))
+                else:
+                    actions[packet_id] = [(self.drone.identifier, packet.n_hops, hop_delivery_delay)]
+
             # build ack for the reception
             ack_packet = ACKPacket(self.drone, src_drone, self.simulator, packet, current_ts)
             self.unicast_message(ack_packet, self.drone, src_drone, current_ts)

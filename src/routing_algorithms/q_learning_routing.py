@@ -44,7 +44,8 @@ class QLearningRouting(BASE_routing):
             # feedback from the environment
             # print(drone, id_event, delay, outcome)
 
-            state, action, hops_count, pck_creation_time = self.taken_actions[id_event]
+            # print(self.taken_actions[id_event])
+            state, action, hops_count = self.taken_actions[id_event]
 
             # remove the entry, the action has received the feedback
             del self.taken_actions[id_event]

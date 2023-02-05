@@ -1,5 +1,6 @@
 from src.routing_algorithms.georouting import GeoRouting
 from src.routing_algorithms.q_learning_routing import QLearningRouting
+from src.routing_algorithms.q_learning_routing_chain import QLearningRoutingChain
 from src.routing_algorithms.second_solution import NEW_QLearningRouting
 from src.routing_algorithms.random_routing import RandomRouting
 from enum import Enum
@@ -37,7 +38,7 @@ RANDOM_START_POINT = True  # bool whether the drones start the mission at random
 # ------------------------------- CONSTANTS ------------------------------- #
 
 DEBUG = False                         # bool: whether to print debug strings or not.
-EXPERIMENTS_DIR = "data/evaluation_tests/"  # output data : the results of the simulation
+EXPERIMENTS_DIR = "data/evaluation_tests/tmp/"  # output data : the results of the simulation
 
 # drawaing
 PLOT_SIM = False      # bool: whether to plot or not the simulation.
@@ -88,6 +89,7 @@ class RoutingAlgorithm(Enum):
     RND = RandomRouting
     QL = QLearningRouting
     NQL = NEW_QLearningRouting
+    QLC = QLearningRoutingChain
     @staticmethod
     def keylist():
         return list(map(lambda c: c.name, RoutingAlgorithm))
@@ -116,7 +118,7 @@ RECEPTION_GRANTED = 0.95   # float : the min amount of success to evalute a neig
 LIL_DELTA = 1              # INT:  > 0
 OLD_HELLO_PACKET = 50
 
-ROOT_EVALUATION_DATA = "data/evaluation_tests/"
+ROOT_EVALUATION_DATA = "data/evaluation_tests/tmp/"
 
 NN_MODEL_PATH = "data/nnmodels/"
 
