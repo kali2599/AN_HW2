@@ -15,7 +15,6 @@ class QLearningRoutingChain(BASE_routing):
 
         self.qtable_hc = {drone.identifier: dict()}
         self.qtable_spdt = {drone.identifier: dict()}
-        print("QLC hola")
 
         self.alpha_h = 0.5
         self.alpha_t = 0.5
